@@ -59,16 +59,7 @@ WebSocket = window.WebSocket = (function(ws) {
         get extensions() { return this.ws.extensions; },
         get protocol() { return this.ws.protocol; },
 
-        close: function(code, reason) { 
-            try {
-                return this.ws.close(code || 1000, reason || "");
-            }
-            catch (ex) {
-                console.error("close", code, reason, ex);
-                console.trace(ex);
-                throw ex;
-            }
-        },
+        close: function(code, reason) { this.ws.close(code || 1000, reason || ""); },
 
         // onmessage handled in ctor
         get binaryType() { return this.ws.binaryType; },
