@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Proper user names
 // @namespace    http://jew.dance/
-// @version      0.3
+// @version      0.4
 // @description  Properly name users
 // @author       RealDolos
 // @match        https://volafile.io/r/*

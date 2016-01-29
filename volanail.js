@@ -3,7 +3,7 @@
 // @namespace   https://volafile.io
 // @include     https://volafile.io/r/*
 // @author      RealDolos who stole the idea from BeetRoot
-// @version     0.4
+// @version     0.5
 // ==/UserScript==
 
 /**

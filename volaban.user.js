@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VolaBan
 // @namespace    http://jew.dance/
-// @version      0.4
+// @version      0.5
 // @description  Filter annoying users aka MercWMouth
 // @author       RealDolos
 // @match        https://volafile.io/r/*
