@@ -19,6 +19,9 @@ const replacements = [
   [/\bLewdBot\b/gi, "Dungmaster"]
 ];
 
+
+console.log("running", GM_info.script.name, GM_info.script.version);
+
 WebSocket = window.WebSocket = (function(ws) {
   // I'd usually use a proxy, but thanks Chrome for not supporting ecma-6
   const WebSocket = function(url, protocols) {

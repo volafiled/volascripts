@@ -17,6 +17,9 @@ const basebans = {
   whites: ["real", "dolos"]
 };
 
+
+console.log("running", GM_info.script.name, GM_info.script.version);
+
 let bans;
 
 let make = function() {
