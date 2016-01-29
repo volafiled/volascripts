@@ -12,5 +12,8 @@
   "browser": true,
   "devel": true,
   "nonstandard": true,
-  "typed": true
+  "typed": true,
+  "globals": {
+    "GM_info": false
+  }
 }
