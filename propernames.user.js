@@ -16,7 +16,8 @@ const replacements = [
   [/deadpool/gi, "PanSexFaggot"],
   [/mcgill/gi, "SuperMarky"],
   [/\bcounselor\b/gi, "CounselorPedro"],
-  [/\bLewdBot\b/gi, "Dungmaster"]
+  [/\bLewdBot\b/gi, "Dungmaster"],
+  [/\b(?:system|news)\b/gi, "CucklordSupreme"]
 ];
 
 
