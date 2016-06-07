@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VolaPG - Best crypto ever!!!1!
 // @namespace    http://jew.dance/
-// @version      0.6
+// @version      0.7
 // @description  If you think this will in any way protect you, you're wronk
 // @author       topkuk productions
 // @match        https://volafile.io/r/*
@@ -9,7 +9,7 @@
 // @grant        GM_setValue
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
-// @require      https://rawgit.com/tonyg/js-nacl/master/lib/nacl_factory.js
+// @require      https://rawgit.com/tonyg/js-nacl/622d52f423f64f0d78cdc478fe8a6bfc2015b828/lib/nacl_factory.js
 // @require      https://rawgit.com/mscdex/base91.js/master/lib/base91.js
 // ==/UserScript==
 
@@ -24,7 +24,7 @@
 console.log("running", GM_info.script.name, GM_info.script.version);
 
 
-let nacl = nacl_factory.instantiate();
+nacl_factory.instantiate(function(nacl) {
 
 let config = window.config || unsafeWindow.config;
 
@@ -314,5 +314,6 @@ setTimeout(function() {
                 "VolaPG is not secure, especially not in .c mode. " +
                 "Use .pubkey to retrieve public key");
 }, 1000);
-
+});
+    
 })();
