@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VolaPG - Best crypto ever!!!1!
 // @namespace    http://jew.dance/
-// @version      0.8
+// @version      0.9
 // @description  If you think this will in any way protect you, you're wronk
 // @author       topkuk productions
 // @match        https://volafile.io/r/*
@@ -161,7 +161,7 @@ const baseMANY = (function() {
             }
             let rv = new Uint8Array(a.byteLength - 1);
             for (let i = 0; i < a.byteLength - 1; ++i) {
-                rv[i] = a[i];
+                rv[i] = u8[i];
             }
             return rv;
         }
