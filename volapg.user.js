@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VolaPG - Best crypto ever!!!1!
 // @namespace    http://jew.dance/
-// @version      0.9
+// @version      0.10
 // @description  If you think this will in any way protect you, you're wronk
 // @author       topkuk productions
 // @match        https://volafile.io/r/*
@@ -17,7 +17,7 @@ const baseMANY = (function() {
 
     let alpha =  "abcdefghijklmnopqrstuvwxyz" +
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-        "01234567890" +
+        "01234567890" + "äöüß" +
         '⢠⢡⢢⢣⢤⢥⢦⢧⢨⢩⢪⢫⢬⢭⢮⢯⢰⢱⢲⢳⢴⢵⢶⢷⢸⢹⢺⢻⢼⢽⢾⢿⣀⣁⣂⣃⣄⣅⣆⣇⣈⣉⣊⣋⣌⣍⣎⣏⣐⣑⣒⣓⣔⣕⣖⣗⣘⣙⣚⣛⣜⣝⣞⣟⣠⣡⣢⣣⣤⣥⣦⣧⣨⣩⣪⣫⣬⣭⣮⣯⣰⣱⣲⣳⣴⣵⣶⣷⣸⣹⣺⣻⣼⣽⣾⣿⤀⤁⤂⤃⤄⤅⤆⤇⤈⤉⤊⤋⤌⤍⤎⤏⤐⤑⤒⤓⤔⤕⤖⤗⤘⤙⤚⤛⤜⤝⤞⤟⤠⤡⤢⤣⤤⤥⤦⤧⤨⤩⤪⤫⤬⤭⤮⤯⤰⤱⤲⤳⤴⤵⤶⤷⤸⤹⤺⤻⤼⤽⤾⤿⥀⥁⥂⥃⥄⥅⥆⥇⥈⥉⥊⥋⥌⥍⥎⥏⥐⥑⥒⥓⥔⥕⥖⥗⥘⥙⥚⥛⥜⥝⥞⥟⥠⥡⥢⥣⥤⥥⥦⥧⥨⥩⥪⥫⥬⥭⥮⥯⥰⥱⥲⥳⥴⥵⥶⥷⥸⥹⥺⥻⥼⥽⥾⥿⦀⦁⦂⦃⦄⦅⦆⦇⦈⦉⦊⦋⦌⦍⦎⦏⦐⦑⦒⦓⦔⦕⦖⦗⦘⦙⦚⦛⦜⦝⦞⦟' +
         'ꀀꀁꀂꀃꀄꀅꀆꀇꀈꀉꀊꀋꀌꀍꀎꀏꀐꀑꀒꀓꀔꀕꀖꀗꀘꀙꀚꀛꀜꀝꀞꀟꀠꀡꀢꀣꀤꀥꀦꀧꀨꀩꀪꀫꀬꀭꀮꀯꀰꀱꀲꀳꀴꀵꀶꀷꀸꀹꀺꀻꀼꀽꀾꀿꁀꁁꁂꁃꁄꁅꁆꁇꁈꁉꁊꁋꁌꁍꁎꁏꁐꁑꁒꁓꁔꁕꁖꁗꁘꁙꁚꁛꁜꁝꁞꁟꁠꁡꁢꁣꁤꁥꁦꁧꁨꁩꁪꁫꁬꁭꁮꁯꁰꁱꁲꁳꁴꁵꁶꁷꁸꁹꁺꁻꁼꁽꁾꁿꂀꂁꂂꂃꂄꂅꂆꂇꂈꂉꂊꂋꂌꂍꂎꂏꂐꂑꂒꂓꂔꂕꂖꂗꂘꂙꂚꂛꂜꂝꂞꂟꂠꂡꂢꂣꂤꂥꂦꂧꂨꂩꂪꂫꂬꂭꂮꂯꂰꂱꂲꂳꂴꂵꂶꂷꂸꂹꂺꂻꂼꂽꂾꂿꃀꃁꃂꃃꃄꃅꃆꃇꃈꃉꃊꃋꃌꃍꃎꃏꃐꃑꃒꃓꃔꃕꃖꃗꃘꃙꃚꃛꃜꃝꃞꃟꃠꃡꃢꃣꃤꃥꃦꃧꃨꃩꃪꃫꃬꃭꃮꃯꃰꃱꃲꃳꃴꃵꃶꃷꃸꃹꃺꃻꃼꃽꃾꃿ';
     const sp = alpha.split("");
@@ -55,17 +55,6 @@ const baseMANY = (function() {
             return freq.get(a) || 0.01;
         };
         let m = [];
-        for (let a = 0; a < 256; ++a) {
-            let sa = score(a);
-            for (var b = 0; b < 256; ++b) {
-                let s = sa * score(b);
-                let val = a * 256 + b;
-                m.push(new Node(val, s));
-            }
-        }
-        const sortbyscore = (a, b) => {
-            return a.score - b.score;
-        };
         const sortidx = (a, v) => {
             let lo = 0, hi = a.length;
             while (lo < hi) {
@@ -79,8 +68,17 @@ const baseMANY = (function() {
             }
             return lo;
         };
+        for (let a = 0; a < 256; ++a) {
+            let sa = score(a);
+            for (var b = 0; b < 256; ++b) {
+                let s = sa * score(b);
+                let val = a * 256 + b;
+                let nn = new Node(val, s);
+                let si = sortidx(m, nn.score);
+                m.splice(si, 0, nn);
+            }
+        }
         const c = sp.length;
-        m.sort(sortbyscore);
         while (m.length > c) {
             let least = m.splice(0, Math.min(c, m.length - c + 1));
             let nn = new Node(null, least.reduce((a, b) => a + b.score, 0));
@@ -186,7 +184,7 @@ const baseMANY = (function() {
    unsafeWindow, GM_getValue, GM_setValue, GM_xmlhttpRequest
 */
 
-console.log("running", GM_info.script.name, GM_info.script.version);
+console.log("running", GM_info.script.name, GM_info.script.version, baseMANY.many);
 
 
 nacl_factory.instantiate(function(nacl) {
