@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mod files better, because reasons!
 // @namespace    http://not.jew.dance/
-// @version      0.5
+// @version      0.6
 // @description  try to take over the world!
 // @author       You
 // @match        https://volafile.io/r/*
@@ -100,10 +100,12 @@
         }
     };
 
+    let ididedit = false;
     exts.admin.on("owner", function() {
-        if (!exts.admin.isOwner) {
+        if (!exts.admin.isOwner || ididedit) {
             return;
         }
+        ididedit = true;
 
         (function() {
             try {
