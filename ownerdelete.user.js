@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mod files better, because reasons!
 // @namespace    http://not.jew.dance/
-// @version      0.2
+// @version      0.3
 // @description  try to take over the world!
 // @author       You
 // @match        https://volafile.io/r/*
@@ -13,6 +13,18 @@
     'use strict';
     function selected() {
         return Array.from($$(".dolos-says-cuck")).filter(e => e.checked).map(e => e.dataset.id);
+    }
+
+    function $e(tag, attrs, text) {
+        let rv = document.createElement(tag);
+        attrs = attrs || {};
+        for (let a in attrs) {
+            rv.setAttribute(a, attrs[a]);
+        }
+        if (text) {
+            rv.textContent = text;
+        }
+        return rv;
     }
 
     const $ = document.querySelector.bind(document);
@@ -34,8 +46,8 @@
     };
     const file_click = function(e) {
         let file = e.target;
-        last_file = file;
         if (!e.shiftKey) {
+            last_file = file;
             return;
         }
         if (!last_file) {
@@ -52,8 +64,7 @@
         let files = exts.filelistManager.filelist.filelist.slice(cf, lf);
         let checked = file.checked;
         files.forEach(el => {
-            el = el.dom.controlElement.querySelector(".dolos-says-cuck");
-            el.checked = checked;
+            el.dom.dolosElement.checked = checked;
         });
         e.stopPropagation();
         e.preventDefault();
@@ -65,14 +76,15 @@
             if (!file.id) {
                 return;
             }
-            var existing = file.dom.controlElement.querySelector(".dolos-says-cuck");
+            var existing = file.dom.dolosElement;
             if (existing) {
                 existing.dataset.id = file.id;
                 return;
             }
-            let chk = document.createElement("input");
-            chk.setAttribute("type", "checkbox");
-            chk.classList.add("dolos-says-cuck");
+            let chk = $e("input", {
+                type: "checkbox",
+                class: "dolos-says-cuck"
+            });
             chk.dataset.id = file.id;
             chk.style.display = "inline";
             let c = file.dom.controlElement;
@@ -81,6 +93,7 @@
             let fe = file.dom.fileElement;
             fe.setAttribute("contextmenu", "dolos_cuckmenu");
             fe.dataset.dolosId = file.id;
+            file.dom.dolosElement = chk;
         }
         catch (ex) {
             console.error(ex);
@@ -94,11 +107,11 @@
 
         (function() {
             try {
-                let el = document.createElement("menu");
-                el.setAttribute("id", "dolos_cuckmenu");
-                el.setAttribute("type", "context");
-                let mi = document.createElement("menuitem");
-                mi.textContent = "Select all files from this user";
+                let el = $e("menu", {
+                    id: "dolos_cuckmenu",
+                    type: "context"
+                });
+                let mi = $e("menuitem", null, "Select all files from this user");
                 el.appendChild(mi);
                 let user = null;
                 let fl = $("#file_list");
@@ -112,37 +125,34 @@
                 }.bind(mi));
                 mi.addEventListener("click", function() {
                     exts.filelistManager.filelist.filelist.forEach(
-                        e => e.dom.fileElement.querySelector(".dolos-says-cuck").checked = e.tags.user === user);
+                        e => e.dom.dolosElement.checked = e.tags.user === user);
                 });
 
-                mi = document.createElement("menuitem");
-                mi.textContent = "Select all";
+                mi = $e("menuitem", null, "Select all");
                 mi.addEventListener("click", function() {
                     exts.filelistManager.filelist.filelist.forEach(
-                        e => e.dom.fileElement.querySelector(".dolos-says-cuck").checked = true);
+                        e => e.dom.dolosElement.checked = true);
                 });
                 el.appendChild(mi);
 
-                mi = document.createElement("menuitem");
+                mi = $e("menuitem", null, "Select none");
                 mi.textContent = "Select none";
                 mi.addEventListener("click", function() {
                     exts.filelistManager.filelist.filelist.forEach(
-                        e => e.dom.fileElement.querySelector(".dolos-says-cuck").checked = false);
+                        e => e.dom.dolosElement.checked = false);
                 });
                 el.appendChild(mi);
 
-                mi = document.createElement("menuitem");
-                mi.textContent = "Invert selection";
+                mi = $e("menuitem", null, "Invert selection");
                 mi.addEventListener("click", function() {
                     exts.filelistManager.filelist.filelist.forEach(e => {
-                        e = e.dom.fileElement.querySelector(".dolos-says-cuck");
+                        e = e.dom.dolosElement;
                         e.checked = !e.checked;
                     });
                 });
                 el.appendChild(mi);
 
                 document.body.appendChild(el);
-
             }
             catch (ex) {
                 console.error(ex);
@@ -155,17 +165,17 @@
         let cont = $("#upload_container");
         (function() {
             try {
-                let el = document.createElement("label");
-                el.setAttribute("for", "dolos_delete_input");
-                el.setAttribute("id", "dolos_deleteButton");
-                el.classList.add("button");
-                let ico = document.createElement("span");
-                ico.classList.add("icon-trash");
-                el.appendChild(ico);
-                let lbl = document.createElement("span");
-                lbl.classList.add("on_small_header");
-                lbl.textContent = "Delete";
-                el.appendChild(lbl);
+                let el = $e("label", {
+                    "for": "dolos_delete_input",
+                    "id": "dolos_deleteButton",
+                    "class": "button"
+                });
+                el.appendChild($e("span", {
+                    "class": "icon-trash"
+                }));
+                el.appendChild($e("span", {
+                    "class": "on_small_header"
+                }, "Delete"));
                 cont.insertBefore(el, cont.firstChild);
                 el.addEventListener("click", function() {
                     let ids = selected();
