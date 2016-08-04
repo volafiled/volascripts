@@ -6,6 +6,7 @@
 // @author       You
 // @match        https://volafile.io/r/*
 // @grant        none
+// @run-at       document-idle
 // ==/UserScript==
 
 (function() {
