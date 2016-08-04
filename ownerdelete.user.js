@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mod files better, because reasons!
 // @namespace    http://not.jew.dance/
-// @version      0.3
+// @version      0.5
 // @description  try to take over the world!
 // @author       You
 // @match        https://volafile.io/r/*
