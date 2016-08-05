@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mod files better, because reasons!
 // @namespace    http://not.jew.dance/
-// @version      0.6
+// @version      0.7
 // @description  try to take over the world!
 // @author       You
 // @match        https://volafile.io/r/*
@@ -138,7 +138,6 @@
                 el.appendChild(mi);
 
                 mi = $e("menuitem", null, "Select none");
-                mi.textContent = "Select none";
                 mi.addEventListener("click", function() {
                     exts.filelistManager.filelist.filelist.forEach(
                         e => e.dom.dolosElement.checked = false);
@@ -150,6 +149,24 @@
                     exts.filelistManager.filelist.filelist.forEach(e => {
                         e = e.dom.dolosElement;
                         e.checked = !e.checked;
+                    });
+                });
+                el.appendChild(mi);
+                
+                mi = $e("menuitem", null, "Select dupes");
+                mi.addEventListener("click", function() {
+                    let known = new Set();
+                    exts.filelistManager.filelist.filelist.forEach(e => {
+                        let k = `${e.size}/${e.name}`;
+                        let existing = known.has(k);
+                        if (known.has(k)) {
+                            e.dom.dolosElement.checked = true;
+                            console.log("marked " + k + " for doom");
+                        }
+                        else {
+                           known.add(k);
+                           e.dom.dolosElement.checked = false;
+                        }
                     });
                 });
                 el.appendChild(mi);
