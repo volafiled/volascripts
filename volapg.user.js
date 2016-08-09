@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VolaPG - Best crypto ever!!!1!
 // @namespace    http://jew.dance/
-// @version      0.20
+// @version      0.21
 // @description  If you think this will in any way protect you, you're wronk
 // @author       topkuk productions
 // @match        https://volafile.io/r/*
@@ -487,7 +487,7 @@ addEventListener("DOMContentLoaded", function domload(e) {
         p(e) {
             try {
                 exts.chat.applyNick();
-                e = e.split(/^(\S+) +(.+)$/);
+                e = e.split(/^(\S+) +((?:.|\n)+)$/);
                 if (!e || e.length < 3) {
                     throw Error('Invalid format');
                 }
