@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vola Timestamps
 // @namespace    http://not.jew.dance/
-// @version      0.2
+// @version      0.3
 // @description  Dongo said to make this
 // @author       RealDolos
 // @match        https://volafile.io/r/*
@@ -35,14 +35,16 @@
                     span.classList.add("timestamp", "username");
                     span.style.display = "inline-block";
                     span.style.float = "left";
+                    span.style.paddingRight = "6px";
                     let d = new Date(m.options.timestamp);
                     span.textContent = d.toLocaleString("en-US", {
                         hour12: false,
                         hour: "2-digit",
                         minute: "2-digit",
                         second: "2-digit",
-                    }) + "\xa0|\xa0";
+                    }) + "|";
                     span.setAttribute("title", d.toLocaleString("eu"));
+                    m.timestamp_elem = span;
                     m.elem.insertBefore(span, m.elem.firstChild);
                 }
             }
