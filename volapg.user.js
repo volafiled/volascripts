@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VolaPG - Best crypto ever!!!1!
 // @namespace    http://jew.dance/
-// @version      0.21
+// @version      0.22
 // @description  If you think this will in any way protect you, you're wronk
 // @author       topkuk productions
 // @match        https://volafile.io/r/*
@@ -250,7 +250,7 @@ addEventListener("DOMContentLoaded", function domload(e) {
         appendMessage("VolaPG",
                       "is not secure, especially not in /c mode. " +
                       "Use /pubkey to retrieve public key",
-                      {me: true});
+                      {me: true, highlight: false});
     });
 
     let nacl;
@@ -459,7 +459,9 @@ addEventListener("DOMContentLoaded", function domload(e) {
             text = shit.decrypt(
                 nick + config.room_id, text);
             message = exportObject(reconstruct(text));
-
+            if (text.startsWith("[PrivPG]")) {
+                options.highlight = true;
+            }
         }
         catch (ex) {
             if (ex.message.indexOf('crypto_box_open signalled') > 0) {
