@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         you complete me!
 // @namespace    https://not.jew.dance/
-// @version      0.4
+// @version      0.5
 // @description  Everybody hate a swede today!
 // @author       Your mom
 // @match        https://volafile.io/r/*
@@ -29,7 +29,7 @@
         if (never.has(t.toString()) || e.indexOf(t) === 0) {
             return;
         }
-        this.nicknames = unique([...unique([t, ...e].filter(e => !never.has(e))).slice(-limit), ...always]);
+        this.nicknames = unique([...unique([t, ...e].filter(e => !never.has(e))).slice(0, limit), ...always]);
     };
 
     // initialization order is for white Argentinians-hack
