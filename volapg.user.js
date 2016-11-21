@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VolaPG - Best crypto ever!!!1!
 // @namespace    http://jew.dance/
-// @version      0.22
+// @version      0.23
 // @description  If you think this will in any way protect you, you're wronk
 // @author       topkuk productions
 // @match        https://volafile.io/r/*
@@ -526,9 +526,9 @@ addEventListener("DOMContentLoaded", function domload(e) {
         },
         setkeys(keys) {
             try {
-                keys = JSON.decode(keys);
-                keys.boxPk = baseMANY.decode(keys.boxPk);
-                keys.boxSk = baseMANY.decode(keys.boxSk);
+                keys = JSON.parse(keys);
+                keys.boxPk = nacl.from_hex(keys.boxPk);
+                keys.boxSk =  nacl.from_hex(keys.boxSk);
                 shit.setKeys(keys);
                 appendMessage('VolaPG', 'Keys set');
             }
