@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VolaPG - Best crypto ever!!!1!
 // @namespace    http://jew.dance/
-// @version      0.23
+// @version      0.24
 // @description  If you think this will in any way protect you, you're wronk
 // @author       topkuk productions
 // @match        https://volafile.io/r/*
@@ -10,7 +10,7 @@
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
 // @require      https://rawgit.com/tonyg/js-nacl/622d52f423f64f0d78cdc478fe8a6bfc2015b828/lib/nacl_factory.js
-// @require      https://rawgit.com/gregjacobs/Autolinker.js/f8b1ff3f6161a5049e97600ad5795a47bf1f1769/dist/Autolinker.js
+// @require      https://rawgit.com/gregjacobs/Autolinker.js/424c3242d5c9675a5997ce62120820ba55e073b3/dist/Autolinker.min.js
 // @run-at       document-start
 // ==/UserScript==
 
@@ -204,11 +204,15 @@ addEventListener("DOMContentLoaded", function domload(e) {
 
     console.log("running", GM_info.script.name, GM_info.script.version);
 
+    let exts = null;
+
     const reconstruct = (() => {
+        this.Autolinker.matcher.Mention.prototype.matcherRegexes.instagram = new RegExp( '@[_.' + Autolinker.RegexLib.alphaNumericCharsStr + '-]{1,50}', 'g' );
         let hue = new this.Autolinker({
             phone: false,
             twitter: false,
             hashtag: "twitter",
+            mention: "instagram",
         });
         return function(text) {
             let rv = new unsafeWindow.Array();
@@ -225,6 +229,9 @@ addEventListener("DOMContentLoaded", function domload(e) {
                     switch (m.getType()) {
                         case "hashtag":
                             rv.push({type: "room", id: m.getHashtag(), name: "Some Room"});
+                            break;
+                        case "mention":
+                            rv.push({type: "file", id: m.getMention(), name: "Some file (just hover it ffs)"});
                             break;
                         default:
                             rv.push({type: "url", href: m.getAnchorHref(), text: m.getAnchorText()});
@@ -243,7 +250,6 @@ addEventListener("DOMContentLoaded", function domload(e) {
         };
     })();
 
-    let exts = null;
     addEventListener("load", function _load() {
         removeEventListener("load", _load);
         exts = unsafeWindow.Room.prototype._extensions.connection.prototype.room.extensions;
