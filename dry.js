@@ -169,5 +169,6 @@ const dry = (function() {
         unique,
         EventEmitter,
         Commands,
+        version: "0.1",
     };
 })();
