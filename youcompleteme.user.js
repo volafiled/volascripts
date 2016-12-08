@@ -1,38 +1,30 @@
 // ==UserScript==
 // @name         you complete me!
 // @namespace    https://not.jew.dance/
-// @version      0.5
+// @version      0.6
 // @description  Everybody hate a swede today!
 // @author       Your mom
 // @match        https://volafile.io/r/*
 // @grant        none
+// @require      https://rawgit.com/RealDolos/volascripts/064d22df5566bda12d222822584b87dcc6a43d45/dry.js
 // @run-at       document-idle
 // ==/UserScript==
 
 (function() {
     'use strict';
-    console.log("running", GM_info.script.name, GM_info.script.version);
+    console.log("running", GM_info.script.name, GM_info.script.version, dry.version);
 
-    const always = ["Dongmaster", "MercWMouth", "murcmoth", "TheJIDF", "Kreg", "roboCOP", "lain", "Hillary", "Trump"];
-    const never = new Set(["News", "MOTD", "System", "CucklordSupreme", "Report", "VolaPG", "KakKakken"]);
+    const always = ["Dongmaster", "MercWMouth", "murcmoth", "TheJIDF", "Kreg", "roboCOP", "lain"];
+    const never = new Set(["News", "Network", "MOTD", "System", "CucklordSupreme", "Report", "VolaPG", "KakKakken", "Rogueian", "Log"]);
     const limit = 25;
 
-    let unique = function(a) {
-        return a.filter(function(e) {
-            return !!e && (!this.has(e) && !!this.add(e));
-        }, new Set());
-    };
-
-    const exts = Room.prototype._extensions.connection.prototype.room.extensions;
-    exts.chatInput.addNickname = function(t) {
+    const addn = dry.replaceLate("chatInput", "addNickname", function(orig, str, ...args) {
         let e = this.nicknames;
-        if (never.has(t.toString()) || e.indexOf(t) === 0) {
+        if (never.has(str.toString()) || e.indexOf(str) === 0) {
             return;
         }
-        this.nicknames = unique([...unique([t, ...e].filter(e => !never.has(e))).slice(0, limit), ...always]);
-    };
-
-    // initialization order is for white Argentinians-hack
-    exts.chatInput.addNickname("");
-    setTimeout(() => exts.chatInput.addNickname(""), 1000);
+        this.nicknames = dry.unique([...dry.unique([str, ...e].filter(e => !never.has(e))).slice(0, limit), ...always]);
+    });
+    addn("");
+    setTimeout(() => addn(""), 1000);
 })();
