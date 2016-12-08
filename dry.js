@@ -167,14 +167,21 @@ const dry = (function() {
         return exts.chat.showMessage(user, exportObject(message), exportObject(o));
     };
 
-    const config = window.config || unsafeWindow.config;
+    let config = window.config || unsafeWindow.config;
+    if (!config) {
+        bus.once("load", () => {
+            config = window.config || unsafeWindow.config;
+        });
+    }
 
     return {
         on: bus.on.bind(bus),
         off: bus.off.bind(bus),
         once: bus.once.bind(bus),
         emit: bus.emit.bind(bus),
-        config,
+        get config() {
+            return config;
+        },
         get exts() {
             return exts;
         },
