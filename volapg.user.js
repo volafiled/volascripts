@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VolaPG - Best crypto ever!!!1!
 // @namespace    http://jew.dance/
-// @version      0.24
+// @version      0.25
 // @description  If you think this will in any way protect you, you're wronk
 // @author       topkuk productions
 // @match        https://volafile.io/r/*
@@ -11,6 +11,7 @@
 // @grant        unsafeWindow
 // @require      https://rawgit.com/tonyg/js-nacl/622d52f423f64f0d78cdc478fe8a6bfc2015b828/lib/nacl_factory.js
 // @require      https://rawgit.com/gregjacobs/Autolinker.js/424c3242d5c9675a5997ce62120820ba55e073b3/dist/Autolinker.min.js
+// @require      https://rawgit.com/RealDolos/volascripts/064d22df5566bda12d222822584b87dcc6a43d45/dry.js
 // @run-at       document-start
 // ==/UserScript==
 
@@ -186,25 +187,10 @@ const baseMANY = (function() {
     };
 })();
 
-addEventListener("DOMContentLoaded", function domload(e) {
+dry.once("dom", () => {
     "use strict";
 
-    let exportObject = function(o) {
-        return unsafeWindow.JSON.parse(JSON.stringify(o));
-    };
-
-    if (!this.exportFunction) {
-        this.exportFunction = (fn, o) => fn;
-        exportObject = o => o;
-    }
-
-    let config = window.config || unsafeWindow.config;
-
-    removeEventListener("DOMContentLoaded", domload, true);
-
-    console.log("running", GM_info.script.name, GM_info.script.version);
-
-    let exts = null;
+    console.log("running", GM_info.script.name, GM_info.script.version, dry.version);
 
     const reconstruct = (() => {
         this.Autolinker.matcher.Mention.prototype.matcherRegexes.instagram = new RegExp( '@[_.' + Autolinker.RegexLib.alphaNumericCharsStr + '-]{1,50}', 'g' );
@@ -215,7 +201,7 @@ addEventListener("DOMContentLoaded", function domload(e) {
             mention: "instagram",
         });
         return function(text) {
-            let rv = new unsafeWindow.Array();
+            let rv = new dry.unsafeWindow.Array();
             let pieces = text.split("\n");
             for (let p of pieces) {
                 p = p.trim();
@@ -249,11 +235,8 @@ addEventListener("DOMContentLoaded", function domload(e) {
             return rv;
         };
     })();
-
-    addEventListener("load", function _load() {
-        removeEventListener("load", _load);
-        exts = unsafeWindow.Room.prototype._extensions.connection.prototype.room.extensions;
-        appendMessage("VolaPG",
+    dry.once("load", function() {
+        dry.appendMessage("VolaPG",
                       "is not secure, especially not in /c mode. " +
                       "Use /pubkey to retrieve public key",
                       {me: true, highlight: false});
@@ -417,30 +400,8 @@ addEventListener("DOMContentLoaded", function domload(e) {
         }
     };
 
-    const appendMessage = (user, message, options) => {
-        if (!exts) {
-            exts = unsafeWindow.Room.prototype._extensions.connection.prototype.room.extensions;
-        }
-        let o = {
-            dontsave: true,
-            staff: true,
-            highlight: true
-        };
-        options = options || {};
-        for (let k in options) {
-            o[k] = options[k];
-        }
-        if (message.trim) {
-            message = [{type: "text", value: message}];
-        }
-        exts.chat.showMessage(user, exportObject(message), exportObject(o));
-    };
-
-    const chatp = unsafeWindow.Room.prototype._extensions.chat.prototype;
-
     // Will get rid of messages but not of notifications
-    const showMessage = chatp.showMessage;
-    chatp.showMessage = exportFunction(function(nick, message, options, ...args) {
+    dry.replaceEarly("chat", "showMessage", function(orig, nick, message, options, ...args) {
         let text = [];
         if (message.trim) {
             text = message;
@@ -463,8 +424,8 @@ addEventListener("DOMContentLoaded", function domload(e) {
         }
         try {
             text = shit.decrypt(
-                nick + config.room_id, text);
-            message = exportObject(reconstruct(text));
+                nick + dry.config.room_id, text);
+            message = dry.exportObject(reconstruct(text));
             if (text.startsWith("[PrivPG]")) {
                 options.highlight = true;
             }
@@ -475,76 +436,78 @@ addEventListener("DOMContentLoaded", function domload(e) {
                 return;
             }
             else if (ex.message != 'unhandled') {
-                console.log(ex);
-                appendMessage('VolaPG', 'Could not decode message: ' + (ex.message || ex));
+                console.error(ex);
+                dry.appendMessage('VolaPG', 'Could not decode message: ' + (ex.message || ex), {
+                    highlight: false
+                });
             }
         }
-        let a = new unsafeWindow.Array();
+        let a = new dry.unsafeWindow.Array();
         a.push(nick); a.push(message); a.push(options);
         for (let i of args) a.push(i);
-        return showMessage.apply(this, a);
-    }, unsafeWindow);
+        return orig(...a);
+    });
 
-    const commands = {
+    new class extends dry.Commands {
         c(e) {
-            exts.chat.applyNick();
-            let enc = shit.obfuscate(exts.user.name + config.room_id, e);
-            exts.chatInput.emit("chat", enc);
+            dry.exts.chat.applyNick();
+            let enc = shit.obfuscate(dry.exts.user.name + dry.config.room_id, e);
+            dry.exts.chatInput.emit("chat", enc);
             return true;
-        },
+        }
         p(e) {
             try {
-                exts.chat.applyNick();
+                dry.exts.chat.applyNick();
                 e = e.split(/^(\S+) +((?:.|\n)+)$/);
                 if (!e || e.length < 3) {
                     throw Error('Invalid format');
                 }
                 shit.encryptFor(e[1], e[2]).then(function (m) {
                     try {
-                        exts.chat.applyNick();
-                        exts.chatInput.emit("chat", m);
+                        dry.exts.chat.applyNick();
+                        dry.exts.chatInput.emit("chat", m);
 
-                        appendMessage('VolaPG', '[Sent to ' + e[1] + '] ' + e[2]);
+                        dry.appendMessage('VolaPG', '[Sent to ' + e[1] + '] ' + e[2]);
                     }
                     catch (ex) {
                         console.error(ex);
                     }
                 }, function (ex) {
-                    appendMessage('VolaPG', ex.message || ex);
+                    dry.appendMessage('VolaPG', ex.message || ex);
                 });
             }
             catch (ex) {
                 alert(ex);
             }
             return true;
-        },
+        }
         pubkey() {
-            appendMessage('VolaPG Pubkey', shit.getPubKey());
+            dry.appendMessage('VolaPG Pubkey', shit.getPubKey());
             return true;
-        },
+        }
         keys() {
-            appendMessage('VolaPG Keys (do not share)', shit.getSerializedKeys());
+            dry.appendMessage('VolaPG Keys (do not share)', shit.getSerializedKeys());
             return true;
-        },
+        }
         newkeys() {
-            appendMessage('VolaPG', 'Keys reset');
+            dry.appendMessage('VolaPG', 'Keys reset');
             return true;
-        },
+        }
         setkeys(keys) {
             try {
                 keys = JSON.parse(keys);
                 keys.boxPk = nacl.from_hex(keys.boxPk);
                 keys.boxSk =  nacl.from_hex(keys.boxSk);
                 shit.setKeys(keys);
-                appendMessage('VolaPG', 'Keys set');
+                dry.appendMessage('VolaPG', 'Keys set');
             }
             catch (ex) {
                 alert(ex);
             }
             return true;
-        },
+        }
         pghelp() {
-            appendMessage("VolaPG", new unsafeWindow.Array(
+            dry.appendMessage("VolaPG", new dry.unsafeWindow.Array(
                 {type: "text", value: "pls welp!"},
                 {type: "break"},
                 {type: "text", value: "use /c to send a sekrit message"},
@@ -560,21 +523,6 @@ addEventListener("DOMContentLoaded", function domload(e) {
                 {type: "text", value: "use /setkeys to set existing keys (you got from /keys earlier)"}
             ));
             return true;
-        },
-    };
-
-    // hook the original command processor
-    const onCommand = chatp.onCommand;
-    chatp.onCommand = exportFunction(function(command, e, ...args) {
-        let fn = commands[command];
-        if (fn && fn.call(commands, e, args)) {
-            return;
         }
-        args.unshift(e);
-        args.unshift(command);
-        let a = new unsafeWindow.Array();
-        a.push(command); a.push(e);
-        for (let i of args) a.push(i);
-        return onCommand.apply(this, a);
-    }, unsafeWindow);
-}.bind(this), true /* need to get before vola*/ );
+    }();
+});
