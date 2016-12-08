@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         Freaky Names
 // @namespace    http://jew.dance/
-// @version      0.5
+// @version      0.6
 // @description  ...and shit
 // @author       RealDolos
 // @match        https://volafile.io/r/*
 // @grant        none
+// @require      https://rawgit.com/RealDolos/volascripts/064d22df5566bda12d222822584b87dcc6a43d45/dry.js
 // @run-at       document-start
 // ==/UserScript==
 
@@ -27,13 +28,8 @@
     }
 
     console.log("running", GM_info.script.name, GM_info.script.version);
-    addEventListener("DOMContentLoaded", function domload(e) {
-        removeEventListener("DOMContentLoaded", domload, true);
-
-        const chatp = Room.prototype._extensions.chat.prototype;
-
-        const addMessage = chatp.addMessage;
-        chatp.addMessage = function(m, ...args) {
+    dry.once("dom", () => {
+        dry.replaceEarly("chat", "addMessage", (orig, m, ...args) => {
             try {
                 for (let r of r_colors) {
                     if (r[0].test(m.nick)) {
@@ -46,7 +42,7 @@
             catch (ex) {
                 console.error(m, ex);
             }
-            return addMessage.apply(this, [m].concat(args));
-        };
-    }, true);
+            return orig(...[m].concat(args));
+        });
+    });
 })();
