@@ -89,13 +89,24 @@ const dry = (function() {
 
     let exts = null;
     try {
-        exts = Room.prototype._extensions.connection.prototype.room.extensions;
+        exts = (window.Room || unsafeWindow.Room).prototype._extensions.connection.prototype.room.extensions;
     }
     catch (ex) {
         bus.on("load", () => {
-            exts = Room.prototype._extensions.connection.prototype.room.extensions;
+            exts = (window.Room || unsafeWindow.Room).prototype._extensions.connection.prototype.room.extensions;
         });
     }
+
+    let exportObject = function(o) {
+        return unsafeWindow.JSON.parse(JSON.stringify(o));
+    };
+    let exportFunction = this.exportFunction;
+
+    if (!exportFunction) {
+        exportFunction = (fn, o) => fn;
+        exportObject = o => o;
+    }
+
     const replace = function(proto, where, what, newfn) {
         let ext = this[where];
         if (!ext) {
@@ -117,14 +128,14 @@ const dry = (function() {
         if (!origfn) {
             throw new Error("Target not available");
         }
-        ext[what] = function(...args) {
+        ext[what] = exportFunction(function(...args) {
             return newfn.call(this, origfn.bind(this), ...args);
-        };
+        }, unsafeWindow);
         return ext[what].bind(ext);
     };
 
     const replaceEarly = (...args) => {
-        return replace.call(Room.prototype._extensions, true, ...args);
+        return replace.call((window.Room || unsafeWindow.Room).prototype._extensions, true, ...args);
     };
 
     class Commands {
@@ -136,7 +147,7 @@ const dry = (function() {
                 }
                 args.unshift(e);
                 args.unshift(command);
-                return orig(...args);
+                return orig(...exportObject(args));
             });
         }
     }
@@ -150,14 +161,20 @@ const dry = (function() {
         if (options) {
             Object.assign(o, options);
         }
-        exts.chat.showMessage(user, message, o);
+        if (message.trim) {
+            message = [{type: "text", value: message}];
+        }
+        return exts.chat.showMessage(user, exportObject(message), exportObject(o));
     };
+
+    const config = window.config || unsafeWindow.config;
 
     return {
         on: bus.on.bind(bus),
         off: bus.off.bind(bus),
         once: bus.once.bind(bus),
         emit: bus.emit.bind(bus),
+        config,
         get exts() {
             return exts;
         },
@@ -166,9 +183,11 @@ const dry = (function() {
             return replace.call(this.exts, false, ...args);
         },
         appendMessage,
+        exportFunction,
+        exportObject,
         unique,
         EventEmitter,
         Commands,
-        version: "0.1",
+        version: "0.2",
     };
-})();
+}).call(this);
