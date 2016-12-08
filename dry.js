@@ -1,5 +1,7 @@
 const dry = (function() {
     "use strict";
+    const unsafeWindow = this.unsafeWindow || this.window;
+
     const unique = function(a, key) {
         if (key) {
             return a.filter(function(e) {
@@ -96,7 +98,6 @@ const dry = (function() {
             exts = (window.Room || unsafeWindow.Room).prototype._extensions.connection.prototype.room.extensions;
         });
     }
-
     let exportObject = function(o) {
         return unsafeWindow.JSON.parse(JSON.stringify(o));
     };
@@ -185,6 +186,7 @@ const dry = (function() {
         get exts() {
             return exts;
         },
+        unsafeWindow,
         replaceEarly,
         replaceLate(...args) {
             return replace.call(this.exts, false, ...args);
