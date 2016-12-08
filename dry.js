@@ -1,6 +1,6 @@
 const dry = (function() {
     "use strict";
-    const unsafeWindow = this.unsafeWindow || this.window;
+    const unsafeWindow = this.unsafeWindow || window;
 
     const unique = function(a, key) {
         if (key) {
