@@ -170,8 +170,13 @@ const dry = (function() {
 
     let config = window.config || unsafeWindow.config;
     if (!config) {
-        bus.once("load", () => {
+        bus.once("dom", () => {
             config = window.config || unsafeWindow.config;
+            if (!config) {
+                bus.once("load", () => {
+                    config = window.config || unsafeWindow.config;
+                });
+            }
         });
     }
 
