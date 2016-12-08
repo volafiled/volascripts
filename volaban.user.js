@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         VolaBan
 // @namespace    http://jew.dance/
-// @version      0.6
+// @version      0.7
 // @description  Filter annoying users aka MercWMouth
 // @author       RealDolos
 // @match        https://volafile.io/r/*
 // @grant        none
+// @require      https://rawgit.com/RealDolos/volascripts/064d22df5566bda12d222822584b87dcc6a43d45/dry.js
 // @run-at       document-start
 // ==/UserScript==
 
@@ -18,7 +19,7 @@
         whites: ["real", "dolos"]
     };
 
-    console.log("running", GM_info.script.name, GM_info.script.version);
+    console.log("running", GM_info.script.name, GM_info.script.version, dry.version);
 
     let bans;
 
@@ -51,34 +52,15 @@
             (!(options.staff || options.user) && bans.rwhites.test(nick));
     };
 
-    addEventListener("DOMContentLoaded", function domload(e) {
-        removeEventListener("DOMContentLoaded", domload, true);
-
-        let exts = null;
-        addEventListener("load", function _load() {
-            removeEventListener("load", _load);
-            exts = Room.prototype._extensions.connection.prototype.room.extensions;
-        });
-
-        const appendMessage = (user, message) => {
-            exts.chat.showMessage(user, message, {
-                dontsave: true,
-                staff: true,
-                highlight: true
-            });
-        };
-
-        const chatp = Room.prototype._extensions.chat.prototype;
-
+    dry.once("dom", () => {
         // Will get rid of messages but not of notifications
-        const showMessage = chatp.showMessage;
-        chatp.showMessage = function(nick, message, options, ...args) {
+        dry.replaceEarly("chat", "showMessage", (orig, nick, message, options, ...args) => {
             if (ignore(nick, options)) {
-                console.error("ignored", nick, JSON.stringify(message), JSON.stringify(options));
+                console.error("ignored", nick.toString(), JSON.stringify(message), JSON.stringify(options));
                 return false;
             }
-            return showMessage.apply(this, [nick, message, options].concat(args));
-        };
+            return orig(...[nick, message, options].concat(args));
+        });
 
         const _ban = (what, type, who) => {
             if (!who) {
@@ -99,34 +81,34 @@
             }
             save();
             make();
-            appendMessage("VolaBan", `modified rules for ${what}:${who}`);
+            dry.appendMessage("VolaBan", `modified rules for ${what}:${who}`);
             return true;
         };
-        const commands = {
+        new class extends dry.Commands {
             block(e) {
                 return _ban("e", "block", e);
-            },
+            }
             wblock(e) {
                 return _ban("w", "block", e);
-            },
+            }
             sblock(e) {
                 return _ban("s", "block", e);
-            },
+            }
             unblock(e) {
                 return _ban("e", "unblock", e);
-            },
+            }
             wunblock(e) {
                 return _ban("w", "unblock", e);
-            },
+            }
             sunblock(e) {
                 return _ban("s", "unblock", e);
-            },
+            }
             blockreset() {
                 localStorage.removeItem("bans");
                 make();
-                appendMessage("VolaBan", "bans were reset!");
+                dry.appendMessage("VolaBan", "bans were reset!");
                 return true;
-            },
+            }
             blocklist() {
                 let m = new window.Array();
                 m.push({
@@ -141,33 +123,17 @@
                     });
                     m.push({"type": "break" });
                 }
-                appendMessage("VolaBan", m);
+                dry.appendMessage("VolaBan", m);
                 return true;
-            },
-        };
-
-        // hook the original command processor
-        const onCommand = chatp.onCommand;
-        chatp.onCommand = function(command, e, ...args) {
-            let fn = commands[command];
-            if (fn && fn.call(commands, e, args)) {
-                return;
             }
-            args.unshift(e);
-            args.unshift(command);
-            return onCommand.apply(this, args);
-        };
+        }();
+    });
 
-    }, true /* need to get before vola*/ );
-
-    addEventListener("load", function load() {
-        removeEventListener("load", load, false);
-        let exts = Room.prototype._extensions.connection.prototype.room.extensions;
-
+    dry.on("load", () => {
         // Hook the notifications listener too, which is an
         // anonymous function from a closure and hence we
         // have to find it within the registered events
-        exts.connection._events.chatMessage.some(e => {
+        dry.exts.connection._events.chatMessage.some(e => {
             const onChatMessage = e.fn;
             if (!/sage/.test("" + onChatMessage)) {
                 return false;
@@ -180,7 +146,5 @@
             };
             return true;
         });
-
-        console.log("loaded");
-    }, false);
+    });
 })();
