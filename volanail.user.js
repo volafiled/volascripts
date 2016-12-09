@@ -5,7 +5,7 @@
 // @author      RealDolos who stole the idea from BeetRoot
 // @require     https://rawgit.com/RealDolos/volascripts/064d22df5566bda12d222822584b87dcc6a43d45/dry.js
 // @grant       none
-// @version     0.9
+// @version     0.10
 // ==/UserScript==
 
 (function() {
@@ -68,7 +68,7 @@
   margin-left: 2ex;
 }
 .volanail-checked {
-  border: 2px solid red !important;
+  border: 2px solid white !important;
 }
 .volanail-video {
   background: rgba(255,255,255,0.2);
@@ -126,7 +126,7 @@
             }, file.name);
             const icon = file.dom.controlElement.cloneNode(true);
             icon.onclick = e => {
-                file.dom.controlElement.firstChild.click();
+                file.dom.controlElement.firstChild.dispatchEvent(new MouseEvent(e.type, e));
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
@@ -139,12 +139,9 @@
             container.appendChild(infos);
             container.doLoad = this.doLoad.bind(this, file);
             container.onclick = e => {
-                if (e.button || e.shiftKey || e.metaKey || e.altKey || e.ctrlKey) {
-                    return;
-                }
+                file.dom.nameElement.dispatchEvent(new MouseEvent(e.type, e));
                 e.stopPropagation();
                 e.preventDefault();
-                file.dom.nameElement.click();
                 return false;
             };
             file.on("data_checked", (state) => {
