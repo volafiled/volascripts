@@ -96,6 +96,10 @@ table th {
 .toggle.enabled > span.toggle_icon {
   color: #ececec;
 }
+#toggles>.toggle:hover {
+    background-color: rgba(120,120,120,0.1);
+    border-radius: 3px;
+}
 
 input[type=text], input[type=password], textarea {
   background-color: var(--input-color);
