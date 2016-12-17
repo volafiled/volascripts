@@ -8,7 +8,8 @@ html {
   --slider-color: #707070;
   --hi-color: #282828;
   --hi-hover-color: #505050;
-  --file-color: #282828;
+  --file-list-color: #282828;
+  --file-color: #3a3a3a;
   --file-hover-color: #505050;
   --header-hi-color: #404040;
   --tag-color: rgba(160,150,150,0.3);
@@ -36,7 +37,7 @@ table th {
 
 #file_list.even .filelist_file:nth-child(2n),
 #file_list.uneven .filelist_file:nth-child(2n+1) {
-  background-color: var(--file-color);
+  background-color: var(--file-list-color);
 }
 
 .file_selected {
