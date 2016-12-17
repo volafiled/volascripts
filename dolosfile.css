@@ -6,7 +6,7 @@ html {
   --snd-input-color: #333333;
   --box-color: #282828;
   --slider-color: #707070;
-  --hi-color: #303030;
+  --hi-color: #282828;
   --hi-hover-color: #505050;
   --file-color: #282828;
   --file-hover-color: #505050;
@@ -56,6 +56,9 @@ table th {
   background-color: var(--slider-color);
 }
 
+#chat_hbar_container {
+	box-shadow: 0 -5px 5px 0 var(--snd-bg-color) !important;
+}
 #file_notifier,
 #filter_reminder,
 #chat_hbar {
@@ -115,12 +118,15 @@ input.defaultValue[type="text"], input[type="text"][disabled], input.defaultValu
 .chat_file:hover {
   background-color: var(--file-hover-color);
 }
-
+#chat_messages_frame::before {
+  border-left-color: var(--snd-bg-color);
+}
 #chat_messages {
     margin-top: 0.4ex;
     margin-bottom: 0.5ex;
 }
 .chat_message.highlight {
+  border-left-color: var(--hi-color) !important;
   background-color: var(--hi-color);
 }
 
