@@ -121,10 +121,6 @@ input.defaultValue[type="text"], input[type="text"][disabled], input.defaultValu
 #chat_messages_frame::before {
   border-left-color: var(--snd-bg-color);
 }
-#chat_messages {
-    margin-top: 0.4ex;
-    margin-bottom: 0.5ex;
-}
 .chat_message.highlight {
   border-left-color: var(--hi-color) !important;
   background-color: var(--hi-color);
