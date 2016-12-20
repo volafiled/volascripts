@@ -5,7 +5,7 @@
 // @author      RealDolos who stole the idea from BeetRoot
 // @require     https://rawgit.com/RealDolos/volascripts/064d22df5566bda12d222822584b87dcc6a43d45/dry.js
 // @grant       none
-// @version     0.12
+// @version     0.13
 // ==/UserScript==
 /* globals GM_info, dry, format */
 /* jslint strict:global,browser:true,devel:true */
@@ -38,8 +38,11 @@ let active = false, button, file_list, thumb_list;
 .icon-vnthumb:before {
   content: "\\e604";
 }
+.volanail-button {
+  font-size: 18px;
+}
 .volanail-button[active] {
-  box-shadow: inset 0px 0px 8px 3px rgba(120, 120, 120, 0.9)
+  box-shadow: inset 0px 0px 8px 3px rgba(120, 120, 120, 0.9);
 }
 #volanail-list {
   display: flex;
@@ -94,8 +97,8 @@ let active = false, button, file_list, thumb_list;
 
     let cont = $("#upload_container");
     button = $e("label", {
-        "for": "dolos_delete_input",
-        "id": "dolos_deleteButton",
+        "for": "volanail-button",
+        "id": "volanail-button",
         "class": "button volanail-button"
     });
     button.appendChild($e("span", {
