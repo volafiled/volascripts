@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Freaky Names
 // @namespace    http://jew.dance/
-// @version      0.6
+// @version      0.7
 // @description  ...and shit
 // @author       RealDolos
 // @match        https://volafile.io/r/*
@@ -21,6 +21,9 @@
         "31337h4x0r|realdolos|vagfacetrm|robocuck|(?:Red|Dong|Immor|lg188)dolos": "white",
         "^kreg$": "hotpink",
         "^robo": "dodgerblue",
+        "^lain$": "gold",
+        "^apha$": "lightcoral",
+        "^red$": "indianred"
     };
     const r_colors = [];
     for (let name in colors) {
@@ -32,7 +35,7 @@
         dry.replaceEarly("chat", "addMessage", (orig, m, ...args) => {
             try {
                 for (let r of r_colors) {
-                    if (r[0].test(m.nick)) {
+                    if (m.options.user && r[0].test(m.nick)) {
                         for (let n = m.nick_elem; n; n = n.previousSibling) {
                             n.style.color = r[1];
                         }
