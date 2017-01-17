@@ -3,7 +3,7 @@
 // @namespace   volafile.ip.hider
 // @description Hides ip addresses for mods.
 // @include     https://volafile.io/r/*
-// @version     8
+// @version     9
 // @grant       none
 // @require     https://rawgit.com/RealDolos/volascripts/4e2e4cdabf706777926b3eb04a64725c02a9b124/dry.js
 // @run-at      document-start
@@ -15,9 +15,23 @@ dry.once("dom", () => {
 
     const style = document.createElement("style");
     style.textContent = `
-body[noipspls] a.username > span,
+body[noipspls] a.username > span:not(.ban),
 body[noipspls] .tag_key_ip {
-display: none;
+  display: none;
+}
+.username.ban {
+  display: inline-block;
+  vertical-align: top;
+  color: white !important;
+  font-size: 50%;
+  padding: 0;
+  opacity: 0.4;
+}
+.username.ban:hover {
+  opacity: 1;
+}
+.username.ban icon-hammer {
+  padding: 0;
 }
 `;
     document.body.appendChild(style);
@@ -88,15 +102,10 @@ display: none;
                 msg.ban_elem = document.createElement("span");
                 const hammer = document.createElement("i");
                 hammer.setAttribute("class", "chat_message_icon icon-hammer");
-                hammer.style.padding = "0";
                 msg.ban_elem.appendChild(hammer);
                 msg.ban_elem.setAttribute("class", "username clickable ban");
                 msg.ban_elem.addEventListener("click", msg.showBanWindow.bind(msg));
-                const parent = msg.nick_elem.parentElement;
-                parent.insertBefore(msg.ban_elem, parent.firstChild);
-                msg.ban_elem.setAttribute("style", msg.nick_elem.getAttribute("style"));
-                msg.ban_elem.style.padding = "0";
-                msg.ban_elem.style.paddingRight = "1ex";
+                msg.nick_elem.insertBefore(msg.ban_elem, msg.nick_elem.lastChild);
             }
         }
         catch (ex) {
