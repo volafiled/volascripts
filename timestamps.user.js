@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vola Timestamps
 // @namespace    http://not.jew.dance/
-// @version      0.6
+// @version      1.0
 // @description  Dongo said to make this
 // @author       RealDolos
 // @match        https://volafile.io/r/*
@@ -13,6 +13,21 @@
 dry.once("dom", () => {
     "use strict";
     console.log("running", GM_info.script.name, GM_info.script.version, dry.version);
+
+    const style = document.createElement("style");
+    style.textContent = `
+.username.timestamp {
+  -moz-user-select: none;
+  user-select: none;
+  display: inline-block;
+  /*padding: 0;*/
+  whites-pace: pre-wrap;
+}
+[timestamps="false"] .username.timestamp {
+  display: none;
+}
+`;
+    document.body.appendChild(style);
 
     const config_key = `${dry.config.room_id}-timestamps`;
     let enabled = localStorage.getItem(config_key);
@@ -29,16 +44,13 @@ dry.once("dom", () => {
             if (m.nick && m.options && m.options.timestamp) {
                 let span = document.createElement("span");
                 span.classList.add("timestamp", "username");
-                span.style.display = enabled ? "inline-block" : "none";
-                span.style.float = "left";
-                span.style.paddingRight = "6px";
                 let d = new Date(m.options.timestamp);
                 span.textContent = d.toLocaleString("en-US", {
                     hour12: false,
                     hour: "2-digit",
                     minute: "2-digit",
                     second: "2-digit",
-                }) + "|";
+                }) + " |";
                 span.setAttribute("title", d.toLocaleString("eu"));
                 m.timestamp_elem = span;
                 m.elem.insertBefore(span, m.elem.firstChild);
@@ -53,9 +65,7 @@ dry.once("dom", () => {
         ts(e) {
             enabled = !enabled;
             localStorage.setItem(config_key, enabled ? "enabled" : "disabled");
-            for (let el of Array.from(document.querySelectorAll(".timestamp.username"))) {
-                el.style.display = enabled ? "inline-block" : "none";
-            }
+            document.body.setAttribute("timestamps", "" + enabled);
             return true;
         }
     }();
