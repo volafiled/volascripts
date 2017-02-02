@@ -168,6 +168,31 @@ const dry = (function() {
         return exts.chat.showMessage(user, exportObject(message), exportObject(o));
     };
 
+    class MessageFilter {
+        constructor() {
+            this._replace("addMessage");
+            this._replace("showMessage");
+        }
+        _replace(what, fn) {
+            if (!this[what]) {
+                return;
+            }
+            let my = this[what].bind(this);
+            replaceEarly("chat", what, (...args) => {
+                try {
+                    if (my(...args) === false) {
+                        return;
+                    }
+                }
+                catch (ex) {
+                    console.error(what, "threw", ex);
+                }
+                let orig = args.shift();
+                return orig(...args);
+            });
+        }
+    }
+
     let config = window.config || unsafeWindow.config;
     if (!config) {
         bus.once("dom", () => {
@@ -202,6 +227,7 @@ const dry = (function() {
         unique,
         EventEmitter,
         Commands,
-        version: "0.2",
+        MessageFilter,
+        version: "0.3",
     };
 }).call(this);
