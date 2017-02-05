@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         VolaBan
 // @namespace    http://jew.dance/
-// @version      0.7
+// @version      0.9
 // @description  Filter annoying users aka MercWMouth
 // @author       RealDolos
 // @match        https://volafile.io/r/*
 // @grant        none
-// @require      https://rawgit.com/RealDolos/volascripts/064d22df5566bda12d222822584b87dcc6a43d45/dry.js
+// @require      https://rawgit.com/RealDolos/volascripts/7b2bc5989bb9f2e8a23ab7d92d28fd64c397af4e/dry.js
 // @run-at       document-start
 // ==/UserScript==
 
@@ -54,14 +54,15 @@
 
     dry.once("dom", () => {
         // Will get rid of messages but not of notifications
-        dry.replaceEarly("chat", "showMessage", (orig, nick, message, options, ...args) => {
-            if (ignore(nick, options)) {
+        new class extends dry.MessageFilter {
+            showMessage(orig, nick, message, options) {
+                if (!ignore(nick, options)) {
+                    return;
+                }
                 console.error("ignored", nick.toString(), JSON.stringify(message), JSON.stringify(options));
                 return false;
             }
-            return orig(...[nick, message, options].concat(args));
-        });
-
+        }();
         const _ban = (what, type, who) => {
             if (!who) {
                 return false;
