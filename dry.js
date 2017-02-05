@@ -105,7 +105,7 @@ const dry = (function() {
 
     if (!exportFunction) {
         exportFunction = (fn, o) => fn;
-        exportObject = o => o;
+        exportObject = o => window.JSON.parse(JSON.stringify(o));
     }
 
     const replace = function(proto, where, what, newfn) {
@@ -163,7 +163,9 @@ const dry = (function() {
             Object.assign(o, options);
         }
         if (message.trim) {
-            message = [{type: "text", value: message}];
+            let m = new window.Array();
+            m.push({type: "text", value: message});
+            message = m;
         }
         return exts.chat.showMessage(user, exportObject(message), exportObject(o));
     };
