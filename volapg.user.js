@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VolaPG - Best crypto ever!!!1!
 // @namespace    http://jew.dance/
-// @version      0.26
+// @version      0.27
 // @description  If you think this will in any way protect you, you're wronk
 // @author       topkuk productions
 // @match        https://volafile.io/r/*
@@ -339,7 +339,7 @@ dry.once("dom", () => {
                         url: 'https://volafile.io/user/' + user,
                         onload: function (r) {
                             try {
-                                let m = r.responseText.match(/vgpk#\S+/g);
+                                let m = r.responseText.match(/vgpk#[a-f0-9]+/g);
                                 if (!m) {
                                     throw new Error('user did not provide public key');
                                 }
