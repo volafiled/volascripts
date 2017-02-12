@@ -163,7 +163,7 @@ const dry = (function() {
             Object.assign(o, options);
         }
         if (message.trim) {
-            let m = new window.Array();
+            let m = new unsafeWindow.Array();
             m.push({type: "text", value: message});
             message = m;
         }
