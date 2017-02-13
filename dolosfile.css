@@ -335,6 +335,10 @@ a.header_row_element_disabled:visited {
 #uploadButton {
     font-size: 18px;
     padding: 0 .5em 1px .5em;
+    margin-left: 1ex;
+}
+#clearsearch {
+    padding-left: 0.6ex;
 }
 #call_to_action {
     color: #434343;
