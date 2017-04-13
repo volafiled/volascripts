@@ -42,6 +42,9 @@ table th {
 .file_selected {
     background-color: #464646 !important;
 }
+.filelist_file:hover:before {
+    border-color: var(--file-hover-color);
+}
 #top_navigation,
 #header {
     background-color: var(--main-bg-color);
