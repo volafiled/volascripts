@@ -1,0 +1,8 @@
+@-moz-document domain("volafile.io") {
+.file_left_part {
+    pointer-events: none;
+}
+div.filelist_file > a > span {
+    pointer-events: auto !important;
+}
+}
