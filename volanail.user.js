@@ -5,7 +5,7 @@
 // @author      RealDolos who stole the idea from BeetRoot
 // @require     https://rawgit.com/RealDolos/volascripts/064d22df5566bda12d222822584b87dcc6a43d45/dry.js
 // @grant       none
-// @version     0.14
+// @version     0.16
 // ==/UserScript==
 /* globals GM_info, dry, format */
 /* jslint strict:global,browser:true,devel:true */
@@ -30,13 +30,14 @@ function $e(tag, attrs, text) {
 
 const $ = (sel, el) => (el || document).querySelector(sel);
 const $$ = (sel, el) => Array.from((el || document).querySelectorAll(sel));
+const noop = function() {};
 
 let active = false, button, file_list, thumb_list;
 
 (function() {
     document.body.appendChild($e("style", null, `
 .icon-vnthumb:before {
-  content: "\\e604";
+  content: "\\f03e"; // XXX use actual icon class, but colors :*(
 }
 .volanail-button {
   font-size: 18px;
@@ -127,7 +128,7 @@ class Thumbnail {
             class: `volanail-thumb volanail-${file.type}`
         });
         const name = $e("div", {
-            class: "volanail-name",
+            class: `volanail-name ${file.dom.nameElement && file.dom.nameElement.className}`,
             title: file.name
         }, file.name);
         const icon = this.icon = file.dom.controlElement.cloneNode(true);
@@ -163,31 +164,32 @@ class Thumbnail {
         });
     }
     doLoad(file) {
-        let rv = new Promise((resolve, reject) => {
-            try {
-                setTimeout(reject, 5000);
-                dry.exts.connection.getFileInfo(file.id, (e, info) => {
-                    try {
-                        requestAnimationFrame(() => this.addInfos(resolve, reject, e, info));
-                    }
-                    catch (ex) {
-                        reject(ex);
-                    }
-                });
-            }
-            catch (ex) {
-                reject(ex);
-            }
-            finally {
-                delete this.container.doLoad;
-            }
-        });
+        let rv = new Promise(this.doLoadInternal.bind(this, file));
         rv.catch(ex => {
             console.error("caught");
             this.setMedia(this.error_image.cloneNode(true));
             throw ex;
         });
         return rv;
+    }
+    doLoadInternal(file, resolve, reject) {
+        try {
+            setTimeout(reject, 5000);
+            dry.exts.connection.getFileInfo(file.id, (e, info) => {
+                try {
+                    requestAnimationFrame(() => this.addInfos(resolve, reject, e, info));
+                }
+                catch (ex) {
+                    reject(ex);
+                }
+            });
+        }
+        catch (ex) {
+            reject(ex);
+        }
+        finally {
+            delete this.container.doLoad;
+        }
     }
     addInfos(resolve, reject, e, info) {
         if (e) {
