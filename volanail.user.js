@@ -5,7 +5,7 @@
 // @author      RealDolos who stole the idea from BeetRoot
 // @require     https://rawgit.com/RealDolos/volascripts/064d22df5566bda12d222822584b87dcc6a43d45/dry.js
 // @grant       none
-// @version     0.16
+// @version     0.17
 // ==/UserScript==
 /* globals GM_info, dry, format */
 /* jslint strict:global,browser:true,devel:true */
@@ -37,7 +37,7 @@ let active = false, button, file_list, thumb_list;
 (function() {
     document.body.appendChild($e("style", null, `
 .icon-vnthumb:before {
-  content: "\\f03e"; // XXX use actual icon class, but colors :*(
+  content: "\\f03e"; /* XXX use actual icon class, but colors :*( */
 }
 .volanail-button {
   font-size: 18px;
