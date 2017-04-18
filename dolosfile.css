@@ -206,6 +206,9 @@ input[type=submit]:active {
 .gallery_button {
     font-size: x-small;
 }
+.gallery_area {
+    border: 0;
+}
 .button.light,
 .button.light:visited,
 input[type=submit].light,
