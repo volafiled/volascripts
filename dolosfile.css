@@ -52,6 +52,7 @@ table th {
 .top_nav_item:hover {
     background-color: #4e4e4e;
 }
+.scroller-slider,
 .nano>.pane>.slider {
     background-color: var(--slider-color);
 }
