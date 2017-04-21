@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mod EVERYTHING better, because reasons!
 // @namespace    http://not.jew.dance/
-// @version      0.9
+// @version      0.10
 // @description  try to take over the world!
 // @author       You
 // @match        https://volafile.io/r/*
@@ -113,6 +113,12 @@
         const file_click = function(e) {
             let file = e.target;
             if (!e.shiftKey) {
+                e.stopPropagation();
+                e.preventDefault();
+                // hack to work around prevent default here
+                setTimeout(() => {
+                    file.checked = !file.checked;
+                });
                 last_file = file;
                 return;
             }
@@ -137,18 +143,6 @@
             setTimeout(() => file.checked = last_file.checked = checked, 0);
             return false;
         };
-        $("#file_list").addEventListener("click", e => {
-            const t = e.target;
-            if (!e.button && t.classList.contains("dolos-says-cuck")) {
-                e.stopPropagation();
-                e.preventDefault();
-                // hack to work around prevent default here
-                setTimeout(() => {
-                    t.checked = !t.checked;
-                });
-                return false;
-            }
-        }, true);
         const prepare_file = function(file) {
             try {
                 if (!file.id) {
@@ -171,7 +165,7 @@
                 chk.style.display = "inline";
                 let c = file.dom.controlElement;
                 c.insertBefore(chk, c.firstChild);
-                chk.addEventListener("click", file_click);
+                chk.addEventListener("click", file_click, true);
                 let fe = file.dom.fileElement;
                 fe.setAttribute("contextmenu", "dolos_cuckmenu");
                 fe.dataset.dolosId = file.id;
