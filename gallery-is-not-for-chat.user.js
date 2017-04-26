@@ -5,6 +5,7 @@
 // @description  It really is not!
 // @author       RealDolos
 // @match        https://volafile.io/r/*
+// @match        https://volafile.org/r/*
 // @grant        none
 // @run-at       document-end
 // ==/UserScript==
