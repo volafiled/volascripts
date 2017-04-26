@@ -5,6 +5,7 @@
 // @description  Dongo said to make this
 // @author       RealDolos
 // @match        https://volafile.io/r/*
+// @match        https://volafile.org/r/*
 // @grant        none
 // @require      https://rawgit.com/RealDolos/volascripts/db222e0a836c6da9d5593c7fc93941c0e7a9d2a1/dry.js
 // @run-at       document-start
