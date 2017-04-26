@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         gallery is not for chat
 // @namespace    http://not.jew.dance/
-// @version      0.1
+// @version      0.2
 // @description  It really is not!
 // @author       RealDolos
 // @match        https://volafile.io/r/*
