@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vola Timestamps
 // @namespace    http://not.jew.dance/
-// @version      1.1
+// @version      2
 // @description  Dongo said to make this
 // @author       RealDolos
 // @match        https://volafile.io/r/*
