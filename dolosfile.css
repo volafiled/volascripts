@@ -1,4 +1,4 @@
-@-moz-document domain("volafile.io") {
+@-moz-document domain("volafile.io"), domain("volafile.org") {
 html {
     --main-bg-color: #333333;
     --snd-bg-color: #101010;
