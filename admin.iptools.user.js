@@ -3,9 +3,10 @@
 // @namespace   volafile.ip.hider
 // @description Hides ip addresses for mods.
 // @include     https://volafile.io/r/*
-// @version     9
+// @include     https://volafile.org/r/*
+// @version     12
 // @grant       none
-// @require     https://rawgit.com/RealDolos/volascripts/4e2e4cdabf706777926b3eb04a64725c02a9b124/dry.js
+// @require     https://rawgit.com/RealDolos/volascripts/db222e0a836c6da9d5593c7fc93941c0e7a9d2a1/dry.js
 // @run-at      document-start
 // ==/UserScript==
 
