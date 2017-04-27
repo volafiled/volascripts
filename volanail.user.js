@@ -2,10 +2,11 @@
 // @name        VolaNailer
 // @namespace   https://volafile.io
 // @include     https://volafile.io/r/*
+// @include     https://volafile.org/r/*
 // @author      RealDolos who stole the idea from BeetRoot
 // @require     https://rawgit.com/RealDolos/volascripts/064d22df5566bda12d222822584b87dcc6a43d45/dry.js
 // @grant       none
-// @version     0.17
+// @version     0.18
 // ==/UserScript==
 /* globals GM_info, dry, format */
 /* jslint strict:global,browser:true,devel:true */
