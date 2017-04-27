@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         VolaBan
 // @namespace    http://jew.dance/
-// @version      0.9
+// @version      0.10
 // @description  Filter annoying users aka MercWMouth
 // @author       RealDolos
 // @match        https://volafile.io/r/*
+// @match        https://volafile.org/r/*
 // @grant        none
 // @require      https://rawgit.com/RealDolos/volascripts/7b2bc5989bb9f2e8a23ab7d92d28fd64c397af4e/dry.js
 // @run-at       document-start
