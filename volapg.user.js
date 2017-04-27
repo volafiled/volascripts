@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         VolaPG - Best crypto ever!!!1!
 // @namespace    http://jew.dance/
-// @version      0.28
+// @version      0.29
 // @description  If you think this will in any way protect you, you're wronk
 // @author       topkuk productions
 // @match        https://volafile.io/r/*
+// @match        https://volafile.org/r/*
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_xmlhttpRequest
