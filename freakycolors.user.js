@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         Freaky Names
 // @namespace    http://jew.dance/
-// @version      0.7
+// @version      0.8
 // @description  ...and shit
 // @author       RealDolos
 // @match        https://volafile.io/r/*
+// @match        https://volafile.org/r/*
 // @grant        none
-// @require      https://rawgit.com/RealDolos/volascripts/064d22df5566bda12d222822584b87dcc6a43d45/dry.js
+// @require      https://rawgit.com/RealDolos/volascripts/db222e0a836c6da9d5593c7fc93941c0e7a9d2a1/dry.js
 // @run-at       document-start
 // ==/UserScript==
 
@@ -30,22 +31,19 @@
         r_colors.push([new RegExp(name, "i"), colors[name]]);
     }
 
-    console.log("running", GM_info.script.name, GM_info.script.version);
+    console.log("running", GM_info.script.name, GM_info.script.version, dry.version);
     dry.once("dom", () => {
-        dry.replaceEarly("chat", "addMessage", (orig, m, ...args) => {
-            try {
+        new class extends dry.MessageFilter {
+            addMessage(orig, m) {
                 for (let r of r_colors) {
                     if (m.options.user && r[0].test(m.nick)) {
                         for (let n = m.nick_elem; n; n = n.previousSibling) {
                             n.style.color = r[1];
                         }
+                        return;
                     }
                 }
             }
-            catch (ex) {
-                console.error(m, ex);
-            }
-            return orig(...[m].concat(args));
-        });
+        }();
     });
 })();
