@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VolaPG - Best crypto ever!!!1!
 // @namespace    http://jew.dance/
-// @version      0.29
+// @version      0.30
 // @description  If you think this will in any way protect you, you're wronk
 // @author       topkuk productions
 // @match        https://volafile.io/r/*
@@ -337,7 +337,7 @@ dry.once("dom", () => {
                 try {
                     GM_xmlhttpRequest({
                         method: 'GET',
-                        url: 'https://volafile.io/user/' + user,
+                        url: 'https://volafile.org/user/' + user,
                         onload: function (r) {
                             try {
                                 let m = r.responseText.match(/vgpk#[a-f0-9]+/g);
