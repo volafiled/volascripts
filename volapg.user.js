@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VolaPG - Best crypto ever!!!1!
 // @namespace    http://jew.dance/
-// @version      0.32
+// @version      0.33
 // @description  If you think this will in any way protect you, you're wronk
 // @author       topkuk productions
 // @match        https://volafile.io/r/*
@@ -261,7 +261,7 @@ dry.once("dom", () => {
     }
 
     // Will get rid of messages but not of notifications
-    dry.replaceEarly("chat", "showMessage", async function(orig, nick, message, options, ...args) {
+    dry.replaceEarly("chat", "showMessage", function(orig, nick, message, options, ...args) {
         let text = [];
         if (message.trim) {
             text = message;
@@ -282,27 +282,34 @@ dry.once("dom", () => {
             }
             text = text.join("");
         }
-        try {
-            let decrypted = decrypt(
-                nick + dry.config.room_id, text);
-            if (decrypted) {
-                message = dry.exportObject(reconstruct(await decrypted));
-                if (text.startsWith("[PrivPG]")) {
-                    options.highlight = true;
+        let decrypted = decrypt(
+            nick + dry.config.room_id, text);
+        if (decrypted) {
+            decrypted.then(text => {
+                try {
+                    message = dry.exportObject(reconstruct(text));
+                    if (text.startsWith("[PrivPG]")) {
+                        options.highlight = true;
+                    }
                 }
-            }
-        }
-        catch (ex) {
-            if (ex.message.indexOf('crypto_box_open signalled') > 0) {
-                console.error(text, ex);
-                return;
-            }
-            else if (ex.message != 'unhandled') {
-                console.error(ex);
-                dry.appendMessage('VolaPG', 'Could not decode message: ' + (ex.message || ex), {
-                    highlight: false
-                });
-            }
+                catch (ex) {
+                    if (ex.message.indexOf('crypto_box_open signalled') > 0) {
+                        console.error(text, ex);
+                        return;
+                    }
+                    else if (ex.message != 'unhandled') {
+                        console.error(ex);
+                        dry.appendMessage('VolaPG', 'Could not decode message: ' + (ex.message || ex), {
+                            highlight: false
+                        });
+                    }
+                }
+                let a = new dry.unsafeWindow.Array();
+                a.push(nick); a.push(message); a.push(options);
+                for (let i of args) a.push(i);
+                return orig(...a);
+            });
+            return null;
         }
         let a = new dry.unsafeWindow.Array();
         a.push(nick); a.push(message); a.push(options);
