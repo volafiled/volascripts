@@ -6,7 +6,7 @@
 // @author      RealDolos who stole the idea from BeetRoot
 // @require     https://rawgit.com/RealDolos/volascripts/064d22df5566bda12d222822584b87dcc6a43d45/dry.js
 // @grant       none
-// @version     0.18
+// @version     0.19
 // ==/UserScript==
 /* globals GM_info, dry, format */
 /* jslint strict:global,browser:true,devel:true */
@@ -220,7 +220,8 @@ class Thumbnail {
                 this.setMedia(img);
                 resolve();
             };
-            img.src = info.thumb;
+            console.log(info);
+            img.src = dry.unsafeWindow.makeAssetUrl(info.id, "thumb", info.thumb);
             return;
 
         }
@@ -234,17 +235,17 @@ class Thumbnail {
             }
             let video = $e("video", {
                 class: "volanail-media",
-                src: info.video_thumb
+                src: dry.unsafeWindow.makeAssetUrl(info.id, "video_thumb", info.video_thumb)
             });
             video.onloadeddata = () => {
                 this.setMedia(video);
                 resolve();
             };
             video.onstalled = () => {
-                this.reject();
+                reject();
             };
             video.onerror = () => {
-                this.reject();
+                reject();
             };
             video.loop = true;
             video.muted = true;
