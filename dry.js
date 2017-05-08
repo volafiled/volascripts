@@ -109,9 +109,16 @@ const dry = (function() {
     }
 
     const replace = function(proto, where, what, newfn) {
-        let ext = this[where];
-        if (!ext) {
-            throw new Error("Binding not available");
+        where = where.split(".");
+        let ext = this;
+        for (let w of where) {
+            if (!(w in ext)) {
+                throw new Error(`Binding not available: ${w}`);
+            }
+            ext = ext[w];
+            if (!ext) {
+                throw new Error(`Binding not available: ${w}`);
+            }
         }
         if (proto) {
             if (ext.prototype && document.readyState !== "complete") {
@@ -230,6 +237,6 @@ const dry = (function() {
         EventEmitter,
         Commands,
         MessageFilter,
-        version: "0.3",
+        version: "0.4",
     };
 }).call(this);
