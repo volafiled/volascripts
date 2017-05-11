@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VolaPG - Best crypto ever!!!1!
 // @namespace    http://jew.dance/
-// @version      0.33
+// @version      0.34
 // @description  If you think this will in any way protect you, you're wronk
 // @author       topkuk productions
 // @match        https://volafile.io/r/*
@@ -322,7 +322,7 @@ dry.once("dom", () => {
             get_shit().then(shit => {
                 dry.exts.chat.applyNick();
                 let enc = shit.obfuscate(dry.exts.user.name + dry.config.room_id, e);
-                dry.exts.chatInput.emit("chat", enc);
+                dry.exts.chat.chatInput.emit("submit", enc);
             });
             return true;
         }
@@ -337,7 +337,7 @@ dry.once("dom", () => {
                     shit.encryptFor(e[1], e[2]).then(function (m) {
                         try {
                             dry.exts.chat.applyNick();
-                            dry.exts.chatInput.emit("chat", m);
+                            dry.exts.chat.chatInput.emit("submit", m);
 
                             dry.appendMessage('VolaPG', '[Sent to ' + e[1] + '] ' + e[2]);
                         }
