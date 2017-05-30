@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         you complete me!
-// @namespace    https://not.jew.dance/
-// @version      0.8
-// @description  Everybody hate a swede today!
-// @author       Your mom
-// @match        https://volafile.io/r/*
+// @namespace    https://volafile.org/
+// @author       topkuk productions
+// @icon         https://volafile.org/favicon.ico
+// @version      2
+// @description  So you can better ignore people
 // @match        https://volafile.org/r/*
 // @grant        none
-// @require      https://rawgit.com/RealDolos/volascripts/a9c0424e5498deea9fd437c15b2137c3bec07c61/dry.js
+// @require      https://cdn.rawgit.com/RealDolos/volascripts/7b2bc5989bb9f2e8a23ab7d92d28fd64c397af4e/dry.js
 // @run-at       document-idle
 // ==/UserScript==
 
