@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name        VolaNailer
-// @namespace   https://volafile.io
-// @include     https://volafile.io/r/*
+// @namespace   https://volafile.org
 // @include     https://volafile.org/r/*
-// @author      RealDolos who stole the idea from BeetRoot
-// @require     https://rawgit.com/RealDolos/volascripts/064d22df5566bda12d222822584b87dcc6a43d45/dry.js
+// @icon        https://volafile.org/favicon.ico
+// @author      topkuk productions
+// @match       https://volafile.org/r/*
+// @require     https://cdn.rawgit.com/RealDolos/volascripts/1dd689f72763c0e59f567fdf93865837e35964d6/dry.js
 // @grant       none
-// @version     0.19
+// @version     0.21
 // ==/UserScript==
 /* globals GM_info, dry, format */
 /* jslint strict:global,browser:true,devel:true */
