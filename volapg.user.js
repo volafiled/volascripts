@@ -1,19 +1,19 @@
 // ==UserScript==
 // @name         VolaPG - Best crypto ever!!!1!
-// @namespace    http://jew.dance/
-// @version      0.34
+// @namespace    https://volafile.org/
+// @version      0.36
 // @description  If you think this will in any way protect you, you're wronk
+// @icon         https://volafile.org/favicon.ico
 // @author       topkuk productions
-// @match        https://volafile.io/r/*
 // @match        https://volafile.org/r/*
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
-// @require      https://rawgit.com/tonyg/js-nacl/334f0587103bd3b7e721b92fc1d2a38a8f23708d/lib/nacl_factory.js
-// @require      https://rawgit.com/gregjacobs/Autolinker.js/424c3242d5c9675a5997ce62120820ba55e073b3/dist/Autolinker.min.js
-// @require      https://rawgit.com/RealDolos/volascripts/1dd689f72763c0e59f567fdf93865837e35964d6/dry.js
-// @require      https://rawgit.com/RealDolos/volascripts/1dd689f72763c0e59f567fdf93865837e35964d6/baseMANY.js
+// @require      https://cdn.rawgit.com/tonyg/js-nacl/334f0587103bd3b7e721b92fc1d2a38a8f23708d/lib/nacl_factory.js
+// @require      https://cdn.rawgit.com/gregjacobs/Autolinker.js/424c3242d5c9675a5997ce62120820ba55e073b3/dist/Autolinker.min.js
+// @require      https://cdn.rawgit.com/RealDolos/volascripts/1dd689f72763c0e59f567fdf93865837e35964d6/dry.js
+// @require      https://cdn.rawgit.com/RealDolos/volascripts/1dd689f72763c0e59f567fdf93865837e35964d6/baseMANY.js
 // @run-at       document-start
 // ==/UserScript==
 
@@ -78,11 +78,9 @@ dry.once("dom", () => {
             this._nacl = null;
         }
         init() {
-            console.log("init nacl");
             return new Promise((resolve, reject) => {
                 nacl_factory.instantiate(n => {
                     this._nacl = n;
-                    console.log("inited nacl");
                     resolve(this);
                 }, {
                     requested_total_memory:  1<<22,
