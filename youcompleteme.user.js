@@ -3,11 +3,11 @@
 // @namespace    https://volafile.org/
 // @author       topkuk productions
 // @icon         https://volafile.org/favicon.ico
-// @version      2
+// @version      3
 // @description  So you can better ignore people
 // @match        https://volafile.org/r/*
 // @grant        none
-// @require      https://cdn.rawgit.com/RealDolos/volascripts/7b2bc5989bb9f2e8a23ab7d92d28fd64c397af4e/dry.js
+// @require      https://cdn.rawgit.com/RealDolos/volascripts/6879f622f45d2b79dd9f004754c28ffa0075a12b/dry.js
 // @run-at       document-idle
 // ==/UserScript==
 
