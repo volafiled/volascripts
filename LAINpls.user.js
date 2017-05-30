@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Lain is annoying
-// @namespace    http://jew.dance/
-// @version      1
+// @namespace    https://volafile.org/
+// @version      3
 // @description  He really is
 // @author       topkuk productions
 // @match        https://volafile.org/r/*
@@ -15,7 +15,12 @@ dry.once("dom", () => {
     "use strict";
     function unannoy() {}
 
-    dry.replaceEarly("messages", "showAdultWarning", unannoy);
-    dry.replaceEarly("messages", "showReminder", unannoy);
-    dry.replaceEarly("messages", "showOldRoom", unannoy);
+    for (let m of ["showAdultWarning", "showOldRoom"]) {
+        try {
+            dry.replaceEarly("messages", m, unannoy);
+        }
+        catch (ex) {
+            console.log("coun't bind", m);
+        }
+    }
 });
