@@ -1,4 +1,4 @@
-@-moz-document domain("volafile.io"), domain("volafile.org") {
+@-moz-document domain("volafile.org") {
 html {
     --main-bg-color: #333333;
     --snd-bg-color: #101010;
@@ -344,5 +344,19 @@ a.header_row_element_disabled:visited {
 #call_to_action {
     color: #434343;
     background-image: url("data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%20standalone%3D%22no%22%3F%3E%0A%3Csvg%20xmlns%3Ardf%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20height%3D%22300%22%20width%3D%22300%22%20version%3D%221.1%22%20xmlns%3Acc%3D%22http%3A%2F%2Fcreativecommons.org%2Fns%23%22%20xmlns%3Adc%3D%22http%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%22%3E%0A%3Cmetadata%3E%0A%3Crdf%3ARDF%3E%0A%3Ccc%3AWork%20rdf%3Aabout%3D%22%22%3E%0A%3Cdc%3Aformat%3Eimage%2Fsvg%2Bxml%3C%2Fdc%3Aformat%3E%0A%3Cdc%3Atype%20rdf%3Aresource%3D%22http%3A%2F%2Fpurl.org%2Fdc%2Fdcmitype%2FStillImage%22%2F%3E%0A%3Cdc%3Atitle%2F%3E%0A%3C%2Fcc%3AWork%3E%0A%3C%2Frdf%3ARDF%3E%0A%3C%2Fmetadata%3E%0A%3Cg%20transform%3D%22translate(0%2C-752.375)%22%3E%0A%3Cpath%20fill%3D%22%23434343%22%20d%3D%22m22%2C752.38c-12.188%2C0-22%2C9.812-22%2C22v53h7v-53c0-8.31%2C6.69-15%2C15-15h53v-7h-53zm203%2C0%2C0%2C7%2C53%2C0c8.31%2C0%2C15%2C6.69%2C15%2C15v53h7v-53c0-12.188-9.812-22-22-22h-53zm-225%2C225%2C0%2C53c0%2C12.188%2C9.812%2C22%2C22%2C22h53v-7h-53c-8.31%2C0-15-6.69-15-15v-53h-7zm293%2C0%2C0%2C53c0%2C8.31-6.69%2C15-15%2C15h-53v7h53c12.188%2C0%2C22-9.812%2C22-22v-53h-7z%22%2F%3E%0A%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A");
+}
+
+.page_admin_modlog table {
+    table-layout: fixed;
+    width: 100%;
+}
+.page_admin_modlog table th:nth-child(1) {
+    width: 15%;
+}
+.page_admin_modlog table th:nth-child(3) {
+    width: 62%;
+}
+.page_admin_modlog table th:nth-child(4) {
+    width: 7ex;
 }
 }
