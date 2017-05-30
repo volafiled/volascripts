@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         VolaBan
-// @namespace    http://jew.dance/
-// @version      0.10
-// @description  Filter annoying users aka MercWMouth
-// @author       RealDolos
-// @match        https://volafile.io/r/*
+// @version      2
+// @description  Filter annoying users
+// @namespace    https://volafile.org
+// @include      https://volafile.org/r/*
+// @icon         https://volafile.org/favicon.ico
+// @author       topkuk productions
 // @match        https://volafile.org/r/*
+// @require      https://cdn.rawgit.com/RealDolos/volascripts/1dd689f72763c0e59f567fdf93865837e35964d6/dry.js
 // @grant        none
-// @require      https://rawgit.com/RealDolos/volascripts/7b2bc5989bb9f2e8a23ab7d92d28fd64c397af4e/dry.js
 // @run-at       document-start
 // ==/UserScript==
 
