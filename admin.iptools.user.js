@@ -1,12 +1,13 @@
 // ==UserScript==
-// @name        Vola IP Tools
-// @namespace   volafile.ip.hider
-// @description Hides ip addresses for mods.
-// @include     https://volafile.org/r/*
-// @version     14
-// @grant       none
-// @require     https://cdn.rawgit.com/spencinator/scripts/1036596a97d4721a6c14a7a6750d102371e4e1e5/dry.js
-// @run-at      document-start
+// @name         Vola IP Tools
+// @namespace    volafile.ip.hider
+// @icon         https://volafile.org/favicon.ico
+// @description  Hides ip addresses for mods.
+// @include      https://volafile.org/r/*
+// @version      15
+// @grant        none
+// @require      https://cdn.rawgit.com/RealDolos/volascripts/1dd689f72763c0e59f567fdf93865837e35964d6/dry.js
+// @run-at       document-start
 // ==/UserScript==
 
 dry.once("dom", () => {
