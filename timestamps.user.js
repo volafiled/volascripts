@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         Vola Timestamps
-// @namespace    http://not.jew.dance/
-// @version      2
+// @version      3
 // @description  Dongo said to make this
-// @author       RealDolos
-// @match        https://volafile.io/r/*
+// @namespace    https://volafile.org
+// @icon         https://volafile.org/favicon.ico
+// @author       topkuk productions
 // @match        https://volafile.org/r/*
+// @require      https://cdn.rawgit.com/RealDolos/volascripts/1dd689f72763c0e59f567fdf93865837e35964d6/dry.js
 // @grant        none
-// @require      https://rawgit.com/RealDolos/volascripts/db222e0a836c6da9d5593c7fc93941c0e7a9d2a1/dry.js
 // @run-at       document-start
 // ==/UserScript==
 
