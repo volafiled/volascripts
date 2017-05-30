@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         Vola IP Tools
-// @namespace    volafile.ip.hider
-// @icon         https://volafile.org/favicon.ico
+// @version      16
 // @description  Hides ip addresses for mods.
-// @include      https://volafile.org/r/*
-// @version      15
-// @grant        none
+// @namespace    https://volafile.org
+// @icon         https://volafile.org/favicon.ico
+// @author       topkuk productions
+// @match        https://volafile.org/r/*
 // @require      https://cdn.rawgit.com/RealDolos/volascripts/1dd689f72763c0e59f567fdf93865837e35964d6/dry.js
 // @run-at       document-start
 // ==/UserScript==
