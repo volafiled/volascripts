@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         gallery is not for chat
-// @namespace    http://not.jew.dance/
-// @version      0.2
+// @version      1
 // @description  It really is not!
-// @author       RealDolos
-// @match        https://volafile.io/r/*
+// @namespace    https://volafile.org
+// @icon         https://volafile.org/favicon.ico
+// @author       topkuk productions
 // @match        https://volafile.org/r/*
 // @grant        none
 // @run-at       document-end
