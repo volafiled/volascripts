@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola IP Tools
-// @version      16
+// @version      17
 // @description  Hides ip addresses for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -114,7 +114,7 @@ body[noipspls] .tag_key_ip {
                 msg.ban_elem.appendChild(hammer);
                 msg.ban_elem.setAttribute("class", "username clickable ban");
                 msg.ban_elem.addEventListener("click", msg.showBanWindow.bind(msg));
-                msg.nick_elem.insertBefore(msg.ban_elem, msg.nick_elem.lastChild);
+                msg.nick_elem.appendChild(msg.ban_elem);
             }
         }
         catch (ex) {
