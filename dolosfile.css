@@ -237,6 +237,7 @@ body {
 }
 .chat_message .username {
     color: rgb(170, 170, 180);
+    float: none;
 }
 .chat_message.user .username {
     color: #23d16f;
