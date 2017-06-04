@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola IP Tools
-// @version      17
+// @version      18
 // @description  Hides ip addresses for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -22,6 +22,13 @@ body[noipspls] .tag_key_ip {
 }
 .username.ban {
   display: inline-block;
+}
+@-moz-document url-prefix() {
+.username.ban {
+  display: inline;
+}
+}
+.username.ban {
   vertical-align: top;
   color: white !important;
   font-size: 50%;
