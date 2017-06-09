@@ -352,12 +352,21 @@ a.header_row_element_disabled:visited {
     width: 100%;
 }
 .page_admin_modlog table th:nth-child(1) {
-    width: 15%;
+    width: 16%;
 }
 .page_admin_modlog table th:nth-child(3) {
-    width: 62%;
+    width: 59%;
 }
 .page_admin_modlog table th:nth-child(4) {
     width: 7ex;
+}
+
+#disable_room:hover,
+#room_settings:hover {
+    background-color: var(--button-light-color);
+}
+#disable_room:active,
+#room_settings:active {
+    background-color: var(--button-hi-light-color);
 }
 }
