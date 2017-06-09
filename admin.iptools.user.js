@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola IP Tools
-// @version      19
+// @version      20
 // @description  Hides ip addresses for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -46,37 +46,6 @@ body[noipspls] .tag_key_ip {
   position: absolute;
   right: 0;
   bottom: 0;
-}
-#disable_room,
-#room_settings {
-  display: inline-block;
-  position: relative;
-  top: initial;
-  bottom: initial;
-  font-size: .8em;
-  padding-bottom: 0;
-  margin-right: 1ex;
-  -webkit-border-top-right-radius: 0;
-  -webkit-border-bottom-right-radius: 0;
-  -webkit-border-bottom-left-radius: 0;
-  -webkit-border-top-left-radius: 5px;
-  -moz-border-radius-bottomleft: 0;
-  -moz-border-radius-topleft: 5px;
-  -moz-background-clip: padding-box;
-  -webkit-background-clip: padding-box;
-  background-clip: padding-box;
-  background-color: transparent;
-  opacity: .75;
-  border-radius: 5px;
-}
-#disable_room:hover,
-#room_settings:hover {
-    opacity: 1;
-    background-color: #567390;
-}
-#disable_room:active,
-#room_settings:active {
-    background-color: #6181a1;
 }
 `;
     document.body.appendChild(style);
@@ -173,11 +142,7 @@ body[noipspls] .tag_key_ip {
         disable.className = "button light";
         disable.textContent = "Nuke";
 
-        let container = document.createElement("span");
-        container.id = "room_tools";
-        settings.parentElement.appendChild(container);
-        container.appendChild(settings);
-        container.appendChild(disable);
+        settings.parentElement.appendChild(disable);
         disable.addEventListener("click", function() {
             dry.exts.ui.showQuestion({
                 title: "Disable this room",
