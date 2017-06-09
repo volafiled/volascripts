@@ -361,12 +361,13 @@ a.header_row_element_disabled:visited {
     width: 7ex;
 }
 
-#disable_room:hover,
-#room_settings:hover {
+#room_name_buttons>.button:hover {
     background-color: var(--button-light-color);
 }
-#disable_room:active,
-#room_settings:active {
+#room_name_buttons>.button:active {
     background-color: var(--button-hi-light-color);
+}
+#room_name_buttons {
+    font-size: .6em;
 }
 }
