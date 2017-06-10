@@ -305,34 +305,8 @@ a.header_row_element_disabled:visited {
 .file_status {
     min-width: 98px;
 }
-.file_buttons {
-    margin-left: auto;
-}
-.file_buttons:after {
-    content: '';
-    padding-right: 1ex;
-    border-right: 2px solid #434343;
-}
-.file_buttons > .file_button {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    font-size: 0;
-    text-indent: 0%;
-    white-space: nowrap;
-    overflow: hidden;
-}
-.file_buttons > .file_button:first-child:before {
-    font-size: 16px;
-    font-family: icomoon;
-    padding-right: 1ex;
-    content: '\e9ad';
-}
-.file_buttons > .file_button:nth-child(2):before {
-    font-size: 16px;
-    font-family: icomoon;
-    content: '\f0e3';
+.file_buttons:before, .file_status:before {
+	border-color: var(--main-bg-color) !important;
 }
 #uploadButton {
     font-size: 18px;
