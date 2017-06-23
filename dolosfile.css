@@ -139,6 +139,12 @@ textarea[disabled] {
 .chat_message > i {
     color: var(--channel-color);
 }
+.chat_message {
+    word-wrap: nowrap;
+}
+.chat_text {
+    word-wrap: normal;
+}
 .chat_file {
     background-color: var(--file-color);
 }
