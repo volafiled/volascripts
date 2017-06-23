@@ -142,6 +142,7 @@ textarea[disabled] {
 .chat_message {
     white-space: nowrap;
 }
+.chat_message a[target],
 .chat_text {
     white-space: normal;
 }
