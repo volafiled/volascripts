@@ -140,10 +140,10 @@ textarea[disabled] {
     color: var(--channel-color);
 }
 .chat_message {
-    word-wrap: nowrap;
+    white-space: nowrap;
 }
 .chat_text {
-    word-wrap: normal;
+    white-space: normal;
 }
 .chat_file {
     background-color: var(--file-color);
