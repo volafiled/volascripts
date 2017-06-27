@@ -307,10 +307,12 @@ a.header_row_element_disabled:visited {
     color: #535353;
 }
 .file_right_part {
-    min-width: 166px;
     text-align: right;
 }
-.file_status {
+body::not(.mbbile_filelist) .file_right_part {
+    min-width: 166px;
+}
+body::not(.mbbile_filelist) .file_status {
     min-width: 98px;
 }
 .file_buttons:before, .file_status:before {
