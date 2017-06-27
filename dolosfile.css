@@ -309,10 +309,10 @@ a.header_row_element_disabled:visited {
 .file_right_part {
     text-align: right;
 }
-body::not(.mbbile_filelist) .file_right_part {
+body:not(.mobile_filelist) .file_right_part {
     min-width: 166px;
 }
-body::not(.mbbile_filelist) .file_status {
+body:not(.mobile_filelist) .file_status {
     min-width: 98px;
 }
 .file_buttons:before, .file_status:before {
