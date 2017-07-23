@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VolaPG - Best crypto ever!!!1!
 // @namespace    https://volafile.org/
-// @version      0.36
+// @version      0.37
 // @description  If you think this will in any way protect you, you're wronk
 // @icon         https://volafile.org/favicon.ico
 // @author       topkuk productions
@@ -219,7 +219,10 @@ dry.once("dom", () => {
             key = this.mackdf(rnounce, key);
             let nounce = this.combine(rnounce, key.subarray(32, 50));
             key = key.subarray(0, 32);
-            return "[PubPG] " + nacl.decode_utf8(nacl.crypto_secretbox_open(data, nounce, key));
+            return {
+                type: "PubPG",
+                msg: nacl.decode_utf8(nacl.crypto_secretbox_open(data, nounce, key))
+            };
         }
         _decryptFrom(msg) {
             if (!msg.startsWith('p#')) {
@@ -232,7 +235,10 @@ dry.once("dom", () => {
             let nounce = this.combine(rnounce, pubkey.subarray(0, 24 - rnounce.byteLength));
             let keys = this.getKeys();
             msg = this._nacl.crypto_box_open(data, nounce, pubkey, keys.boxSk);
-            return "[PrivPG] " + this._nacl.decode_utf8(msg);
+            return {
+                type: "PrivPG",
+                msg: this._nacl.decode_utf8(msg)
+            };
         }
     }
 
@@ -259,7 +265,7 @@ dry.once("dom", () => {
     }
 
     // Will get rid of messages but not of notifications
-    dry.replaceEarly("chat", "showMessage", function(orig, nick, message, options, ...args) {
+    dry.replaceEarly("chat", "showMessage", function(orig, nick, message, options, data, ...args) {
         let text = [];
         if (message.trim) {
             text = message;
@@ -283,36 +289,30 @@ dry.once("dom", () => {
         let decrypted = decrypt(
             nick + dry.config.room_id, text);
         if (decrypted) {
-            decrypted.then(text => {
-                try {
-                    message = dry.exportObject(reconstruct(text));
-                    if (text.startsWith("[PrivPG]")) {
-                        options.highlight = true;
-                    }
+            console.log("decrypted");
+            decrypted.then(result => {
+                console.log(result);
+                message = dry.exportObject(reconstruct(result.msg));
+                if (result.type === "PrivPG") {
+                    options.highlight = true;
                 }
-                catch (ex) {
-                    if (ex.message.indexOf('crypto_box_open signalled') > 0) {
+                data.channel = result.type;
+                return orig(nick, message, options, data, ...args);
+            }).catch(ex => {
+                if (ex.message.indexOf('crypto_box_open signalled') > 0) {
                         console.error(text, ex);
                         return;
-                    }
-                    else if (ex.message != 'unhandled') {
-                        console.error(ex);
-                        dry.appendMessage('VolaPG', 'Could not decode message: ' + (ex.message || ex), {
-                            highlight: false
-                        });
-                    }
                 }
-                let a = new dry.unsafeWindow.Array();
-                a.push(nick); a.push(message); a.push(options);
-                for (let i of args) a.push(i);
-                return orig(...a);
+                else if (ex.message != 'unhandled') {
+                    console.error(ex);
+                    dry.appendMessage('VolaPG', 'Could not decode message: ' + (ex.message || ex), {
+                        highlight: false
+                    });
+                }
             });
             return null;
         }
-        let a = new dry.unsafeWindow.Array();
-        a.push(nick); a.push(message); a.push(options);
-        for (let i of args) a.push(i);
-        return orig(...a);
+        return orig(nick, message, options, data, ...args);
     });
 
     new class extends dry.Commands {
