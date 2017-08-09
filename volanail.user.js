@@ -6,10 +6,12 @@
 // @author      topkuk productions
 // @match       https://volafile.org/r/*
 // @require     https://cdn.rawgit.com/RealDolos/volascripts/1dd689f72763c0e59f567fdf93865837e35964d6/dry.js
+// @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/finally.js
+// @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/pool.js
 // @grant       none
-// @version     0.21
+// @version     0.22
 // ==/UserScript==
-/* globals GM_info, dry, format */
+/* globals GM_info, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
 
 "use strict";
@@ -122,6 +124,36 @@ const force_update = () => {
     dry.exts.filelist.scheduleDomUpdate();
 };
 
+const apool = new class AnimationPool {
+    constructor() {
+        this.items = [];
+        this.id = 0;
+        this.run = this.run.bind(this);
+        Object.seal(this);
+    }
+    run() {
+        try {
+            while (this.items.length) {
+                const items = Array.from(this.items);
+                this.items.length = 0;
+                for (let item of items) {
+                    item.fn.call(item.ctx, ...item.args);
+                }
+            }
+        }
+        finally {
+            this.items.length = 0;
+            this.id = 0;
+        }
+    }
+    schedule(ctx, fn, ...args) {
+        this.items.push({ ctx, fn, args });
+        if (!this.id) {
+            this.id = requestAnimationFrame(this.run);
+        }
+    }
+}();
+
 class Thumbnail {
     constructor(file) {
         const container = this.container = $e("a", {
@@ -135,13 +167,13 @@ class Thumbnail {
         }, file.name);
         const icon = this.icon = file.dom.controlElement.cloneNode(true);
         icon.icon = file.dom.controlElement;
-        icon.onclick = e => {
+        name.insertBefore(icon, name.firstChild);
+        name.onclick = e => {
             file.dom.controlElement.firstChild.dispatchEvent(new MouseEvent(e.type, e));
             e.preventDefault();
             e.stopPropagation();
             return false;
         };
-        name.insertBefore(icon, name.firstChild);
         container.appendChild(name);
         const infos = this.infos = $e("div", {
             class: "volanail-infos"
@@ -157,47 +189,105 @@ class Thumbnail {
         file.on("data_checked", (state) => {
             container.classList[state ? "add" : "remove"]("volanail-checked");
         });
+        container.classList[
+            file.dom.fileElement.classList.contains("file_selected") ? "add" : "remove"
+        ]("volanail-checked");
         this.setMedia(this.loading_image.cloneNode(true));
     }
     setMedia(el) {
-        requestAnimationFrame(() => {
-            $$(".volanail-media", this.container).forEach(e => this.container.removeChild(e));
-            this.container.insertBefore(el, this.infos);
-        });
+        apool.schedule(this, this.setMediaInternal, el);
     }
-    doLoad(file) {
-        let rv = new Promise(this.doLoadInternal.bind(this, file));
-        rv.catch(ex => {
-            console.error("caught");
-            this.setMedia(this.error_image.cloneNode(true));
-            throw ex;
-        });
-        return rv;
+    setMediaInternal(el) {
+        $$(".volanail-media", this.container).forEach(e => this.container.removeChild(e));
+        this.container.insertBefore(el, this.infos);
     }
-    doLoadInternal(file, resolve, reject) {
+    async doLoad(file) {
         try {
-            setTimeout(reject, 5000);
-            dry.exts.connection.getFileInfo(file.id, (e, info) => {
-                try {
-                    requestAnimationFrame(() => this.addInfos(resolve, reject, e, info));
-                }
-                catch (ex) {
-                    reject(ex);
-                }
-            });
+            await this.addInfo(await this.getInfo(file, 5000));
         }
         catch (ex) {
-            reject(ex);
+            this.setMedia(this.error_image.cloneNode(true));
         }
         finally {
             delete this.container.doLoad;
         }
     }
-    addInfos(resolve, reject, e, info) {
-        if (e) {
-            reject(e);
-            return;
+    getInfo(file, timeout) {
+        return new Promise(this.getInfoAsPromised.bind(this, file, timeout));
+    }
+    getInfoAsPromised(file, timeout, resolve, reject) {
+        setTimeout(reject, timeout || 5000);
+        dry.exts.connection.getFileInfo(file.id, function(e, info) {
+            if (e || !info) {
+                reject(e);
+                return;
+            }
+            resolve(info);
+        });
+    }
+    addInfo(info) {
+        return new Promise((resolve, reject) => apool.schedule(
+            this, this.addInfoAsPromised, info, resolve, reject));
+    }
+    addInfoForThumb(info, ip, resolve, reject) {
+        if (info.image) {
+            const fmt = $e(
+                "div",
+                null,
+                `${info.image.format} - ${info.image.width || 0}×${info.image.height || 0}`);
+            if (ip) {
+                fmt.appendChild(ip);
+            }
+            this.infos.insertBefore(fmt, this.infos.firstChild);
         }
+        var img = new Image();
+        img.classList.add("volanail-media");
+        img.onerror = ex => {
+            reject(ex);
+        };
+        img.onload = () => {
+            this.setMedia(img);
+            resolve();
+        };
+        img.src = dry.unsafeWindow.makeAssetUrl(info.id, "thumb", info.thumb);
+    }
+    addInfoForVideoThumb(info, ip, resolve, reject) {
+        if (info.video) {
+            const fmt = $e(
+                "div",
+                null,
+                `${info.video.codec} - ${format.duration((info.video.duration || 0) * 1000)} - ${info.video.width || 0}×${info.video.height || 0}`);
+            if (ip) {
+                fmt.appendChild(ip);
+            }
+            this.infos.insertBefore(fmt, this.infos.firstChild);
+        }
+        let video = $e("video", {
+            class: "volanail-media",
+            src: dry.unsafeWindow.makeAssetUrl(
+                info.id, "video_thumb", info.video_thumb)
+        });
+        video.onloadeddata = () => {
+            this.setMedia(video);
+            resolve();
+        };
+        video.onstalled = () => {
+            reject();
+        };
+        video.onerror = () => {
+            reject();
+        };
+        video.loop = true;
+        video.muted = true;
+        video.onmouseover = () => {
+            video.play();
+        };
+        video.onmouseout = () => {
+            video.pause();
+            video.currentTime = 0;
+        };
+    }
+    addInfoAsPromised(info, resolve, reject) {
         this.icon.firstChild.className = this.icon.icon.firstChild.className;
         delete this.icon.icon;
         let ip;
@@ -205,61 +295,14 @@ class Thumbnail {
             ip = $e("span", {class: "tag_key_ip"}, info.uploader_ip);
         }
         if (info.thumb) {
-            if (info.image) {
-                const fmt = $e("div", null, `${info.image.format} - ${info.image.width || 0}×${info.image.height || 0}`);
-                if (ip) {
-                    fmt.appendChild(ip);
-                }
-                this.infos.insertBefore(fmt, this.infos.firstChild);
-            }
-            var img = new Image();
-            img.classList.add("volanail-media");
-            img.onerror = ex => {
-                reject(ex);
-            };
-            img.onload = () => {
-                this.setMedia(img);
-                resolve();
-            };
-            console.log(info);
-            img.src = dry.unsafeWindow.makeAssetUrl(info.id, "thumb", info.thumb);
+            this.addInfoForThumb(info, ip, resolve, reject);
             return;
-
         }
         if (info.video_thumb) {
-            if (info.video) {
-                const fmt = $e("div", null, `${info.video.codec} - ${format.duration((info.video.duration || 0) * 1000)} - ${info.video.width || 0}×${info.video.height || 0}`);
-                if (ip) {
-                    fmt.appendChild(ip);
-                }
-                this.infos.insertBefore(fmt, this.infos.firstChild);
-            }
-            let video = $e("video", {
-                class: "volanail-media",
-                src: dry.unsafeWindow.makeAssetUrl(info.id, "video_thumb", info.video_thumb)
-            });
-            video.onloadeddata = () => {
-                this.setMedia(video);
-                resolve();
-            };
-            video.onstalled = () => {
-                reject();
-            };
-            video.onerror = () => {
-                reject();
-            };
-            video.loop = true;
-            video.muted = true;
-            video.onmouseover = () => {
-                video.play();
-            };
-            video.onmouseout = () => {
-                video.pause();
-                video.currentTime = 0;
-            };
+            this.addInfoForVideoThumb(info, ip, resolve, reject);
             return;
         }
-        throw new Error("No thumb");
+        reject(new Error("No thumb"));
     }
 }
 const make_image = src => {
@@ -295,6 +338,33 @@ const prepare_file = dry.exportFunction(file => {
     }
 }, dry.unsafeWindow);
 
+const update_file = dry.exportFunction(file => {
+    try {
+        const pe = file.dom.vnThumbElement && file.dom.vnThumbElement.parentElement;
+        if (pe) {
+            pe.removeChild(file.dom.vnThumbElement);
+        }
+        delete file.dom.vnThumbElement;
+        delete file.vnShouldThumb;
+        if (file.upload || !file.id || !file.dom) {
+            return;
+        }
+        if (file.type !== "image" && file.type !== "video") {
+            return;
+        }
+        if (!file.assets.includes("thumb") && !file.assets.includes("video_thumb")) {
+            return;
+        }
+        file.vnShouldThumb = true;
+        if (active) {
+            force_update();
+        }
+    }
+    catch (ex) {
+        console.error(file, ex);
+    }
+}, dry.unsafeWindow);
+
 const remove_file = dry.exportFunction(file => {
     if (!file.dom || !file.dom.vnThumbElement) {
         return;
@@ -311,6 +381,7 @@ const remove_file = dry.exportFunction(file => {
 
 const loader = new class Loader {
     constructor() {
+        this.load_one = PromisePool.wrapNew(4, this, this.load_one);
         this.remaining = [];
     }
     refresh() {
@@ -318,43 +389,35 @@ const loader = new class Loader {
         if (!this.remaining.length) {
             return;
         }
-        this.load();
+        this.load().catch(console.error);
     }
-    load() {
-        if (this.loading) {
+    load_one(t) {
+        if (!active || !t.doLoad) {
             return;
         }
-        this.loading = new Promise((resolve, reject) => {
-            let load_one = () => {
-                if (!active) {
-                    resolve();
-                    return;
-                }
-                let t;
-                for (;;) {
-                    t = this.remaining.shift();
-                    if (!t) {
-                        resolve();
-                        return;
-                    }
-                    if (t.doLoad) {
-                        break;
-                    }
-                }
-                t.doLoad().then(load_one).catch(load_one);
-            };
-            load_one();
-            load_one();
-        });
-        this.loading.then(() => {
-            delete this.loading;
-        });
+        return t.doLoad().catch(console.error); 
+    }
+    async load() {
+        if (this.loading || !this.remaining.length) {
+            return;
+        }
+        this.loading = true;
+        try {
+            while (this.remaining.length) {
+                let jobs = this.remaining.map(this.load_one);
+                this.remaining.length = 0;
+                await Promise.all(jobs);
+            }
+        }
+        finally {
+            this.loading = false;
+        }
     }
 }();
 
 dry.once("load", () => {
     dry.exts.filelistManager.on("fileAdded", prepare_file);
-    dry.exts.filelistManager.on("fileUpdated", prepare_file);
+    dry.exts.filelistManager.on("fileUpdated", update_file);
     dry.exts.filelistManager.on("fileRemoved", remove_file);
     Array.from(dry.exts.filelistManager.filelist.filelist).reverse().forEach(prepare_file);
     button.addEventListener("click", () => {
