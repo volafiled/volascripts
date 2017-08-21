@@ -9,7 +9,7 @@
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/finally.js
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/pool.js
 // @grant       none
-// @version     0.22
+// @version     0.23
 // ==/UserScript==
 /* globals GM_info, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
@@ -57,6 +57,21 @@ let active = false, button, file_list, thumb_list;
 .volanail-thumb > img, .volanail-thumb > video {
   max-height: calc(100% - 1.4em - 4ex);
   max-width: calc(100% - 1.2em);
+}
+.volanail-thumb > div.volanail-media {
+  height: calc(100% - 1.4em - 8ex);
+  width: calc(100% - 1.2em - 4ex);
+  border: 6px dashed white !important;
+  border-radius: 26px;
+}
+.volanail-thumb > .file_name.file_hellbanned {
+  text-decoration: line-through double;
+  color: #ed7174;
+}
+.volanail-thumb > div.volanail-media > span {
+  margin: auto;
+  padding: 0;
+  font-size: 90px;
 }
 .volanail-thumb {
   display: inline-flex;
@@ -156,6 +171,7 @@ const apool = new class AnimationPool {
 
 class Thumbnail {
     constructor(file) {
+        this.file = file;
         const container = this.container = $e("a", {
             href: file.link,
             target: "_blank",
@@ -206,6 +222,7 @@ class Thumbnail {
             await this.addInfo(await this.getInfo(file, 5000));
         }
         catch (ex) {
+            console.error("ex", ex);
             this.setMedia(this.error_image.cloneNode(true));
         }
         finally {
@@ -229,6 +246,24 @@ class Thumbnail {
         return new Promise((resolve, reject) => apool.schedule(
             this, this.addInfoAsPromised, info, resolve, reject));
     }
+    addInfoForGeneric(info, ip, cls, resolve, reject) {
+        const fmt = $e(
+            "div",
+            null,
+            `Type: ${this.file.type.slice(0,1).toUpperCase()}${this.file.type.slice(1)}`);
+        if (ip) {
+            fmt.appendChild(ip);
+        }
+        this.infos.insertBefore(fmt, this.infos.firstChild);
+        var img = document.createElement("div");
+        var icon = document.createElement("span");
+        icon.className = cls;
+        icon.classList.remove("clickable");
+        img.classList.add("volanail-media");
+        img.appendChild(icon);
+        this.setMedia(img);
+        resolve();
+    }
     addInfoForThumb(info, ip, resolve, reject) {
         if (info.image) {
             const fmt = $e(
@@ -249,6 +284,7 @@ class Thumbnail {
             this.setMedia(img);
             resolve();
         };
+        setTimeout(() => reject("timeout"), 10000);
         img.src = dry.unsafeWindow.makeAssetUrl(info.id, "thumb", info.thumb);
     }
     addInfoForVideoThumb(info, ip, resolve, reject) {
@@ -286,6 +322,7 @@ class Thumbnail {
             video.pause();
             video.currentTime = 0;
         };
+        setTimeout(() => reject("timeout"), 10000);
     }
     addInfoAsPromised(info, resolve, reject) {
         this.icon.firstChild.className = this.icon.icon.firstChild.className;
@@ -302,7 +339,10 @@ class Thumbnail {
             this.addInfoForVideoThumb(info, ip, resolve, reject);
             return;
         }
-        reject(new Error("No thumb"));
+        if (["thumb", "video_thumb"].some(a => this.file.assets.includes(a))) {
+            reject(new Error("No thumb"));        
+        }
+        this.addInfoForGeneric(info, ip, this.icon.firstChild.className, resolve, reject);
     }
 }
 const make_image = src => {
@@ -319,16 +359,9 @@ Object.assign(Thumbnail.prototype, {
 
 const prepare_file = dry.exportFunction(file => {
     try {
-        if (file.upload || !file.id || !file.dom || file.vnShouldThumb || file.dom.vnThumbElement) {
+        if (file.upload || !file.id || !file.dom || file.dom.vnThumbElement) {
             return;
         }
-        if (file.type !== "image" && file.type !== "video") {
-            return;
-        }
-        if (!file.assets.includes("thumb") && !file.assets.includes("video_thumb")) {
-            return;
-        }
-        file.vnShouldThumb = true;
         if (active) {
             force_update();
         }
@@ -345,17 +378,9 @@ const update_file = dry.exportFunction(file => {
             pe.removeChild(file.dom.vnThumbElement);
         }
         delete file.dom.vnThumbElement;
-        delete file.vnShouldThumb;
         if (file.upload || !file.id || !file.dom) {
             return;
         }
-        if (file.type !== "image" && file.type !== "video") {
-            return;
-        }
-        if (!file.assets.includes("thumb") && !file.assets.includes("video_thumb")) {
-            return;
-        }
-        file.vnShouldThumb = true;
         if (active) {
             force_update();
         }
@@ -444,10 +469,6 @@ dry.once("load", () => {
         try {
             let off = 0;
             dry.exts.filelist.each((f, idx) => {
-                if (!f.vnShouldThumb) {
-                    ++off;
-                    return;
-                }
                 let el = f.dom.vnThumbElement;
                 if (!el) {
                     el = f.dom.vnThumbElement = new Thumbnail(f).container;
