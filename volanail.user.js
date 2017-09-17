@@ -9,7 +9,7 @@
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/finally.js
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/pool.js
 // @grant       none
-// @version     0.23
+// @version     0.24
 // ==/UserScript==
 /* globals GM_info, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
@@ -264,7 +264,7 @@ class Thumbnail {
         this.setMedia(img);
         resolve();
     }
-    addInfoForThumb(info, ip, resolve, reject) {
+    addInfoForThumb(info, ip, name, resolve, reject) {
         if (info.image) {
             const fmt = $e(
                 "div",
@@ -275,19 +275,20 @@ class Thumbnail {
             }
             this.infos.insertBefore(fmt, this.infos.firstChild);
         }
-        var img = new Image();
+        const src = dry.unsafeWindow.makeAssetUrl(info.id, name, info.thumb.server);
+        const img = new Image();
         img.classList.add("volanail-media");
         img.onerror = ex => {
-            reject(ex);
+            reject(src);
         };
         img.onload = () => {
             this.setMedia(img);
             resolve();
         };
         setTimeout(() => reject("timeout"), 10000);
-        img.src = dry.unsafeWindow.makeAssetUrl(info.id, "thumb", info.thumb);
+        img.src = src;
     }
-    addInfoForVideoThumb(info, ip, resolve, reject) {
+    addInfoForVideoThumb(info, ip, name, resolve, reject) {
         if (info.video) {
             const fmt = $e(
                 "div",
@@ -298,20 +299,20 @@ class Thumbnail {
             }
             this.infos.insertBefore(fmt, this.infos.firstChild);
         }
+        const src = dry.unsafeWindow.makeAssetUrl(info.id, name, info.thumb.server);
         let video = $e("video", {
             class: "volanail-media",
-            src: dry.unsafeWindow.makeAssetUrl(
-                info.id, "video_thumb", info.video_thumb)
+            src
         });
         video.onloadeddata = () => {
             this.setMedia(video);
             resolve();
         };
         video.onstalled = () => {
-            reject();
+            reject(src);
         };
         video.onerror = () => {
-            reject();
+            reject(src);
         };
         video.loop = true;
         video.muted = true;
@@ -322,7 +323,7 @@ class Thumbnail {
             video.pause();
             video.currentTime = 0;
         };
-        setTimeout(() => reject("timeout"), 10000);
+        setTimeout(() => reject("timeout " + src), 10000);
     }
     addInfoAsPromised(info, resolve, reject) {
         this.icon.firstChild.className = this.icon.icon.firstChild.className;
@@ -331,16 +332,19 @@ class Thumbnail {
         if (info.uploader_ip) {
             ip = $e("span", {class: "tag_key_ip"}, info.uploader_ip);
         }
-        if (info.thumb) {
-            this.addInfoForThumb(info, ip, resolve, reject);
+        const {thumb = {}} = info;
+        const {data = {}} = thumb;
+        const {type: ttype="", name="thumb"} = data;
+        if (ttype.startsWith("image/")) {
+            this.addInfoForThumb(info, ip, name, resolve, reject);
             return;
         }
-        if (info.video_thumb) {
-            this.addInfoForVideoThumb(info, ip, resolve, reject);
+        if (ttype.startsWith("video/")) {
+            this.addInfoForVideoThumb(info, ip, name, resolve, reject);
             return;
         }
         if (["thumb", "video_thumb"].some(a => this.file.assets.includes(a))) {
-            reject(new Error("No thumb"));        
+            reject(new Error("No thumb"));
         }
         this.addInfoForGeneric(info, ip, this.icon.firstChild.className, resolve, reject);
     }
@@ -420,7 +424,7 @@ const loader = new class Loader {
         if (!active || !t.doLoad) {
             return;
         }
-        return t.doLoad().catch(console.error); 
+        return t.doLoad().catch(console.error);
     }
     async load() {
         if (this.loading || !this.remaining.length) {
