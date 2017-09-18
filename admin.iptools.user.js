@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola IP Tools
-// @version      23
+// @version      24
 // @description  Hides ip addresses for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -81,7 +81,7 @@ body[noipspls] .tag_key_ip {
 
     dry.replaceEarly("chat", "showMessage", function(orig, nick, message, options, data, ...args) {
         try {
-            if (nick === "Report" && options.staff) {
+            if (nick === "Log" && options.staff) {
                 if (typeof(message) == "string") {
                     message = {type: "text", value: message};
                 }
@@ -90,18 +90,23 @@ body[noipspls] .tag_key_ip {
                 }
                 let newmsg = new dry.unsafeWindow.Array();
                 message.forEach(m => {
-                    if (m && m.type === "text") {
-                        const pieces = m.value.match(/^(.+)( \(([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})\))(.+)$/);
-                        if (!pieces) {
-                            newmsg.push(m);
+                    try {
+                        if (m && m.type === "text") {
+                            const pieces = m.value.match(/^(.+?)( \(([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})\))(.+)$/);
+                            if (!pieces) {
+                                newmsg.push(m);
+                                return;
+                            }
+                            newmsg.push({type: "text", value: pieces[1] + pieces[4]});
+                            if (!data) {
+                                data = new dry.unsafeWindow.Object();
+                                data.ip = pieces[3];
+                            }
                             return;
                         }
-                        newmsg.push({type: "text", value: pieces[1] + pieces[4]});
-                        if (!data) {
-                            data = new dry.unsafeWindow.Object();
-                            data.ip = pieces[3];
-                        }
-                        return;
+                    }
+                    catch (ex) {
+                        console.error(ex);
                     }
                     newmsg.push(m);
                 });
@@ -113,7 +118,7 @@ body[noipspls] .tag_key_ip {
         }
         const msg = orig(...[nick, message, options, data].concat(args));
         try {
-            if (msg.ip_elem) {
+            if (msg && msg.ip_elem) {
                 msg.ban_elem = document.createElement("span");
                 const hammer = document.createElement("i");
                 hammer.setAttribute("class", "chat_message_icon icon-hammer");
