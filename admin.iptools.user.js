@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola IP Tools
-// @version      24
+// @version      25
 // @description  Hides ip addresses for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -92,7 +92,10 @@ body[noipspls] .tag_key_ip {
                 message.forEach(m => {
                     try {
                         if (m && m.type === "text") {
-                            const pieces = m.value.match(/^(.+?)( \(([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})\))(.+)$/);
+                            let pieces = m.value.match(/^(.+?)( to ([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(.+)$/);
+                            if (!pieces) {
+                                pieces = m.value.match(/^(.+?)( \(([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})\))(.+)$/);
+                            }
                             if (!pieces) {
                                 newmsg.push(m);
                                 return;
