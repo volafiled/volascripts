@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         Vola IP Tools
-// @version      25
+// @version      26
 // @description  Hides ip addresses for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
 // @author       topkuk productions
 // @match        https://volafile.org/r/*
-// @require      https://cdn.rawgit.com/RealDolos/volascripts/1dd689f72763c0e59f567fdf93865837e35964d6/dry.js
+// @require      https://cdn.rawgit.com/RealDolos/volascripts/51b76c05be26adca7b4a4897115f67f10d9df668/dry.js
 // @run-at       document-start
 // ==/UserScript==
 
@@ -97,6 +97,9 @@ body[noipspls] .tag_key_ip {
                                 pieces = m.value.match(/^(.+?)( \(([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})\))(.+)$/);
                             }
                             if (!pieces) {
+                                pieces = m.value.match(/^(.+?)( ([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]+))(.*?)$/);
+                            }
+                            if (!pieces) {
                                 newmsg.push(m);
                                 return;
                             }
@@ -170,4 +173,78 @@ body[noipspls] .tag_key_ip {
             });
         });
     }
+
+    dry.replaceEarly("admin", "showBanWindow", function(orig, ips, uploading, chat, blacklist) {
+        function change(form, reasons) {
+            const reasontype = form.reason_elem.value;
+            const reason = reasons[reasontype];
+            if (reason.custom) {
+                form.mute_elem.checked = !!chat;
+                form.ban_elem.checked = !!uploading;
+                form.creason_elem.value = "";
+                form.hours_elem.value = "1";
+                return;
+            }
+            form.mute_elem.checked = !!reason.mute;
+            form.ban_elem.checked = !!reason.upload;
+            form.hellban_elem.checked = !!reason.hellban;
+            form.hours_elem.value = reason.hours + "";
+            form.creason_elem.value = reason.reason || reason.text;
+        }
+        if (!this.isAdmin) {
+            return;
+        }
+        uploading = !!uploading;
+        chat = !!chat;
+        const tmpl = this.import("templates");
+        const conn = this.import("connection");
+        const reasons = Object.assign({}, tmpl.render("bans"));
+        if (blacklist) {
+            for (const k of Object.keys(reasons)) {
+                const b = reasons[k];
+                if (!b.upload && !b.hellban && !b.custom) {
+                    delete reasons[k];
+                    continue;
+                }
+                if (b.upload && b.hours <= 24) {
+                    b.upload = false;
+                }
+            }
+        }
+        if (chat || uploading) {
+            for (const k of Object.keys(reasons)) {
+                const b = reasons[k];
+                var n = !!b.default_upload;
+                var s = !!b.default_mute;
+                b.default = s === chat && n === uploading;
+            }
+        }
+        const form = tmpl.renderForm("forms.ban", {
+            ips,
+            uploading,
+            chat,
+            reasons,
+            blacklist
+        });
+        change(form, reasons);
+        form.reason_elem.addEventListener("change", () => change(form, reasons));
+        form.on("submit", function() {
+            this.dismiss();
+            const options = {
+                hours: parseFloat(this.hours),
+                reason: this.creason.trim(),
+                purgeFiles: this.purge || false,
+                ban: this.ban,
+                hellban: this.hellban,
+                mute: this.mute
+            };
+            if (blacklist) {
+                conn.call("blacklistFiles", ips, options);
+                return;
+            }
+            for (let i = this.ip.split(","), n = 0; n < i.length; n++) {
+                conn.call("banUser", i[n].trim(), options);
+            }
+        });
+    });
 });
