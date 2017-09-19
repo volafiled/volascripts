@@ -191,6 +191,10 @@ a.header_row_element_disabled:hover,
 a.header_row_element_disabled:visited {
     background-color: var(--header-hi-color);
 }
+.header_row_element_disabled.clickable,
+.header_row_element_disabled.clickable:hover {
+    color: var(--input-disabled-color);
+}
 
 
 .dropdown_item:hover {
