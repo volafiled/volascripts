@@ -9,7 +9,7 @@
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/finally.js
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/pool.js
 // @grant       none
-// @version     0.24
+// @version     0.25
 // ==/UserScript==
 /* globals GM_info, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
@@ -333,8 +333,7 @@ class Thumbnail {
             ip = $e("span", {class: "tag_key_ip"}, info.uploader_ip);
         }
         const {thumb = {}} = info;
-        const {data = {}} = thumb;
-        const {type: ttype="", name="thumb"} = data;
+        const {type: ttype="", name="thumb"} = thumb;
         if (ttype.startsWith("image/")) {
             this.addInfoForThumb(info, ip, name, resolve, reject);
             return;
@@ -464,6 +463,7 @@ dry.once("load", () => {
             force_update();
         }
     });
+    button.click();
     dry.replaceLate("filelist", "restoreScrollAnchor", function(orig, ...args) {
         // we don't wanna scroll when in thumb view
         return active ? null : orig(...args);
