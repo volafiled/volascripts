@@ -9,7 +9,7 @@
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/finally.js
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/pool.js
 // @grant       none
-// @version     0.25
+// @version     0.26
 // ==/UserScript==
 /* globals GM_info, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
@@ -463,7 +463,7 @@ dry.once("load", () => {
             force_update();
         }
     });
-    button.click();
+    //button.click();
     dry.replaceLate("filelist", "restoreScrollAnchor", function(orig, ...args) {
         // we don't wanna scroll when in thumb view
         return active ? null : orig(...args);
