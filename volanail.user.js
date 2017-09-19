@@ -9,7 +9,7 @@
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/finally.js
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/pool.js
 // @grant       none
-// @version     0.26
+// @version     0.27
 // ==/UserScript==
 /* globals GM_info, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
@@ -44,6 +44,8 @@ let active = false, button, file_list, thumb_list;
   content: "\\f03e"; /* XXX use actual icon class, but colors :*( */
 }
 .volanail-button {
+  position: relative;
+  z-index: 150;
   font-size: 18px;
 }
 .volanail-button[active] {
