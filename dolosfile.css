@@ -20,7 +20,8 @@ html {
     --button-light-hi-color: #777777;
     --channel-color: #d880fc;
 }
-* {
+
+*, *:after {
     border-color: var(--main-bg-color) !important;
 }
 html {
@@ -90,13 +91,24 @@ table th {
     padding: 0.5ex 1ex;
     font-size: inherit;
 }
-.toggle.enabled > span.toggle_icon {
-    color: var(--input-disabled-color);
+.toggle > span.toggle_icon,
+.toggle > *{
+    color: var(--input-disabled-color) !important;	
 }
+.toggle.enabled > span.toggle_icon,
+.toggle.enabled > * {
+    color: #f6f1f1 !important;    
+}
+
 #toggles>.toggle:hover {
     background-color: rgba(120, 120, 120, 0.1);
     border-radius: 3px;
 }
+
+#room_search {
+   background-color: var(--input-color);
+}
+
 input[type=text],
 input[type=password],
 textarea {
@@ -153,9 +165,10 @@ textarea[disabled] {
 .chat_file:hover {
     background-color: var(--file-hover-color);
 }
-#chat_messages_frame::before {
+#chat_messages_frame:before {
     border-left-color: var(--snd-bg-color);
 }
+
 .chat_message.highlight {
     border-left-color: var(--hi-color) !important;
     background-color: var(--hi-color);
@@ -171,12 +184,15 @@ a.header_row_element:hover {
 a.header_row_element:active {
     background-color: var(--header-hi-color);
 }
+.header_row_element.clickable:hover,
 a.header_row_element_disabled,
 a.header_row_element_disabled:active,
 a.header_row_element_disabled:hover,
 a.header_row_element_disabled:visited {
     background-color: var(--header-hi-color);
 }
+
+
 .dropdown_item:hover {
     background-color: var(--hi-hover-color);
 }
@@ -302,9 +318,6 @@ a.header_row_element_disabled:visited {
 #radio_volume_slider,
 #radio_play_progress {
     background-color: #777777;
-}
-.toggle > span.toggle_icon {
-    color: #535353;
 }
 .file_right_part {
     text-align: right;
