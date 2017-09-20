@@ -9,7 +9,7 @@
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/finally.js
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/pool.js
 // @grant       none
-// @version     0.27
+// @version     0.28
 // ==/UserScript==
 /* globals GM_info, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
@@ -40,6 +40,9 @@ let active = false, button, file_list, thumb_list;
 
 (function() {
     document.body.appendChild($e("style", null, `
+.icon-vnthumb {
+  margin: 0 !important;
+}
 .icon-vnthumb:before {
   content: "\\f03e"; /* XXX use actual icon class, but colors :*( */
 }
