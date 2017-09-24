@@ -258,11 +258,10 @@ input[type=submit].light:hover {
 #chat_name_container {
     order: 1;
 }
-#chat_status {
+#chat_notifier {
     order: 2;
 }
-
-#chat_notifier {
+#chat_status {
     order: 3;
 }
 
@@ -385,10 +384,10 @@ body:not(.mobile_filelist) .file_status {
     width: 100%;
 }
 .page_admin_modlog table th:nth-child(1) {
-    width: 16%;
+    max-width: 15%;
 }
 .page_admin_modlog table th:nth-child(3) {
-    width: 59%;
+    width: 56%;
 }
 .page_admin_modlog table th:nth-child(4) {
     width: 7ex;
@@ -402,5 +401,9 @@ body:not(.mobile_filelist) .file_status {
 }
 #room_name_buttons {
     font-size: .6em;
+}
+
+#bottom_navigation_content {
+    background-color: var(--main-bg-color);
 }
 }
