@@ -68,6 +68,7 @@ table th {
 #chat_hbar {
     display: flex;
     justify-content: flex-end;
+    align-items: flex-end;
     border: 0;
 }
 #chat_name {
@@ -248,6 +249,37 @@ input[type=submit].light:visited {
 input[type=submit].light:hover {
     background-color: var(--button-light-hi-color);
 }
+
+#chat_hbar_buttons {
+    font-size: 90%;
+    order: 0;
+    padding-right: 24px;
+}
+#chat_name_container {
+    order: 1;
+}
+#chat_status {
+    order: 2;
+}
+
+#chat_notifier {
+    order: 3;
+}
+
+#chat_hbar_buttons > .button {
+    color: rgb(170, 170, 170);
+    background-color: var(--main-bg-color);
+}
+#chat_hbar_buttons > .button:hover {
+    color: rgb(230, 230, 230);
+}
+
+
+#room_settings > .icon-cog {
+    display: none;
+}
+
+
 #gallery_title {
     font-size: small;
 }
