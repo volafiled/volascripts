@@ -9,7 +9,7 @@
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/finally.js
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/pool.js
 // @grant       none
-// @version     1.0
+// @version     1.1
 // ==/UserScript==
 /* globals GM_info, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
@@ -289,10 +289,11 @@ class Thumbnail {
     }
     addInfoForThumb(info, ip, name, resolve, reject) {
         if (info.image) {
+            const format = info.image.format ? info.image.format + " - " : "";
             const fmt = $e(
                 "div",
                 null,
-                `${info.image.format} - ${info.image.width || 0}×${info.image.height || 0}`);
+                `${format} ${info.image.width || 0}×${info.image.height || 0}`);
             if (ip) {
                 fmt.appendChild(ip);
             }
@@ -327,8 +328,13 @@ class Thumbnail {
             class: "volanail-media",
             src
         });
+        function setStart() {
+            // work around "blank" start frames
+            video.currentTime = video.duration > 0.1 ? video.duration / 3 : 0;
+        }
         video.onloadeddata = () => {
             this.setMedia(video);
+            setStart();
             resolve();
         };
         video.onstalled = () => {
@@ -340,11 +346,12 @@ class Thumbnail {
         video.loop = true;
         video.muted = true;
         video.onmouseover = () => {
+            video.currentTime = 0;
             video.play();
         };
         video.onmouseout = () => {
             video.pause();
-            video.currentTime = 0;
+            setStart();
         };
         setTimeout(() => reject("timeout " + src), 10000);
     }
