@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola IP Tools
-// @version      27
+// @version      29
 // @description  Hides ip addresses for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -8,6 +8,7 @@
 // @match        https://volafile.org/r/*
 // @require      https://cdn.rawgit.com/RealDolos/volascripts/51b76c05be26adca7b4a4897115f67f10d9df668/dry.js
 // @run-at       document-start
+// @grant        none
 // ==/UserScript==
 
 /* global dry, GM_info */
@@ -99,6 +100,37 @@ body[noipspls] .tag_key_ip {
   uc.parentElement.insertBefore(btn, uc.nextSibling);
   btn.addEventListener("click", toggle);
 
+  const roomqueue = new Map();
+  let resolving = false;
+  const resolve_rooms = async () => {
+    if (resolving) {
+      return;
+    }
+    resolving = true;
+    try {
+      while (roomqueue.size) {
+        const [room, elems] = roomqueue[Symbol.iterator]().next().value;
+        try {
+          let res = await new Promise((resolve, reject) => {
+            dry.unsafeWindow.Volafile.makeAPIRequest("getRoomConfig", {
+              id: room
+            }, (err, res) => err || !res || !res.name ? reject(err) : resolve(res));
+          });
+          for (const el of elems) {
+            el.textContent = res.name;
+          }
+        }
+        catch (ex) {
+          console.error(ex);
+        }
+        roomqueue.delete(room);
+      }
+    }
+    finally {
+      resolving = false;
+    }
+  };
+
   dry.replaceEarly("chat", "showMessage",
     function(orig, nick, message, options, data, ...args) {
       try {
@@ -154,9 +186,29 @@ body[noipspls] .tag_key_ip {
           msg.ban_elem.addEventListener("click", msg.showBanWindow.bind(msg));
           msg.nick_elem.appendChild(msg.ban_elem);
         }
+        if (msg && nick === "Log" && msg.elem) {
+          for (const el of msg.elem.children) {
+            if (!el.textContent.startsWith("#")) {
+              continue;
+            }
+            let m = /https:\/\/volafile.org\/r\/(.+)$/.exec(el.href);
+            if (m) {
+              const l = roomqueue.get(m[1]);
+              if (!l) {
+                roomqueue.set(m[1], [el]);
+              }
+              else {
+                l.push(el);
+              }
+            }
+          }
+        }
       }
       catch (ex) {
         console.error(ex);
+      }
+      finally {
+        resolve_rooms().catch(console.error);
       }
       return msg;
     });
