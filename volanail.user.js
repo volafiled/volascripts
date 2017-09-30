@@ -9,7 +9,7 @@
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/finally.js
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/pool.js
 // @grant       none
-// @version     1.1
+// @version     1.2
 // ==/UserScript==
 /* globals GM_info, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
@@ -498,8 +498,15 @@ dry.once("load", () => {
         // we don't wanna scroll when in thumb view
         return active ? null : orig(...args);
     });
+
     dry.replaceLate("filelist", "updateDom", function(orig, ...args) {
-        let rv = orig(...args);
+        let rv;
+        try {
+            rv = orig(...args);
+        }
+        catch (ex) {
+            console.error("LAIN dun goofed", ex);
+        }
         try {
             let off = 0;
             dry.exts.filelist.each((f, idx) => {
@@ -523,6 +530,6 @@ dry.once("load", () => {
         catch (ex) {
             console.error("something went wronk", ex);
         }
-        return rv ;
+        return rv;
     });
 });
