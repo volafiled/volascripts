@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola IP Tools
-// @version      29
+// @version      30
 // @description  Hides ip addresses for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -47,28 +47,6 @@ body[noipspls] .tag_key_ip {
 .username.ban icon-hammer {
   padding: 0;
 }
-#room_tools {
-  display: inline-block;
-  position: absolute;
-  right: 0;
-  bottom: 0;
-}
-
-#name_container {
-  height: auto;
-  line-height: normal;
-}
-#room_name {
-  font-size: 1.8em;
-}
-#chat_hbar_buttons {
-  display: block;
-  text-align: right;
-  font-size: 80% !important;
-  margin-top: -1ex;
-  padding-right: 1ex !important;
-}
-
 `;
   document.body.appendChild(style);
   let state = localStorage.getItem("noipspls") !== "false";
@@ -220,34 +198,49 @@ body[noipspls] .tag_key_ip {
     }
   }();
 
-  {
-    const settings = document.querySelector("#room_settings");
-    const disable = document.createElement("a");
-    disable.id = "disable_room";
-    disable.className = "button light";
-    disable.textContent = "Nuke";
-
-    settings.parentElement.appendChild(disable);
-    disable.addEventListener("click", function() {
-      dry.exts.ui.showQuestion({
-        title: "Disable this room",
-        text: "Are you sure you want to disable this room?",
-        positive: "Disable",
-        negative: "Abort"
-      }, res => {
-        if (!res) {
-          return;
-        }
-        dry.exts.connection.call("editInfo", {
-          name: "closed",
-          motd: "",
-          disabled: true
-        });
+  function nukeRoom() {
+    dry.exts.ui.showQuestion({
+      title: "Disable this room",
+      text: "Are you sure you want to disable this room?",
+      positive: "Disable",
+      negative: "Abort"
+    }, res => {
+      if (!res) {
+        return;
+      }
+      dry.exts.connection.call("editInfo", {
+        name: "closed",
+        motd: "",
+        disabled: true
       });
     });
-    const header = document.querySelector("#room_name_container");
-    header.appendChild(disable.parentElement);
   }
+
+  dry.replaceEarly("ui", "showContextMenu", function(orig, el, options) {
+    try {
+      if (options && options.dedupe === "room_contextmenu" && dry.exts.admin.isAdmin) {
+        const idx = options.buttons.findIndex(e => e.text === "Room Settings");
+        if (idx >= 0) {
+          options.buttons.splice(idx + 1, 0, {
+            icon: "icon-rules",
+            text: "Nuke Room",
+            click: nukeRoom
+          });
+        }
+        else {
+          options.buttons.push({
+            icon: "icon-rules",
+            text: "Nuke Room",
+            click: nukeRoom
+          });
+        }
+      }
+    }
+    catch (ex) {
+      console.error("ex");
+    }
+    return orig(el, options);
+  });
 
   dry.replaceEarly("admin", "showBanWindow",
     function(orig, ips, uploading, chat, blacklist) {
