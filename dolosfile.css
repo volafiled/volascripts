@@ -250,6 +250,14 @@ input[type=submit].light:hover {
     background-color: var(--button-light-hi-color);
 }
 
+#name_container,
+.ui_frame_content .button.light {
+    background-color: var(--main-bg-color);
+}
+.ui_frame_content .button.light:hover {
+    background-color: var(--button-light-hi-color);
+}
+
 #chat_hbar_buttons {
     font-size: 90%;
     order: 0;
