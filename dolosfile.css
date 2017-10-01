@@ -19,6 +19,7 @@ html {
     --button-light-color: #666666;
     --button-light-hi-color: #777777;
     --channel-color: #d880fc;
+    --context-bg-color: #444444;
 }
 
 *, *:after {
@@ -35,6 +36,11 @@ select {
 
 table th {
     background-color: var(--main-bg-color);
+}
+
+#chat_frame,
+#files_frame {
+    border-top-color: var(--header-hi-color) !important;
 }
 
 #chat_header,
@@ -56,6 +62,7 @@ table th {
 #volafile_icon_svg {
     height: 2em;
     width: 2em;
+    padding: 0 .8em;
 }
 
 #chat_frame,
@@ -156,6 +163,18 @@ table th {
 #room_search {
    background-color: var(--input-color);
    margin-left: 1em;
+}
+
+.ui_frame_contextmenu {
+    border-radius: 0;
+    border: 0;
+}
+
+.ui_frame_contextmenu,
+.ui_frame_contextmenu .button.light,
+.ui_frame_contextmenu .button.light:active,
+.ui_frame_contextmenu .button.light:visited {
+    background-color: var(--context-bg-color);
 }
 
 input[type=text],
@@ -322,8 +341,7 @@ input[type=submit].light:hover {
     background-color: var(--button-light-hi-color);
 }
 
-#name_container,
-.ui_frame_content .button.light {
+#name_container {
     background-color: var(--main-bg-color);
 }
 .ui_frame_content .button.light:hover {
@@ -484,7 +502,6 @@ body:not(.mobile_filelist) .file_status {
 #uploadButton {
     font-size: 18px;
     padding: 0 .5em 1px .5em;
-    margin-left: 1ex;
 }
 
 #clearsearch {
