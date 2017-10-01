@@ -9,7 +9,7 @@
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/finally.js
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/pool.js
 // @grant       none
-// @version     1.2
+// @version     1.3
 // ==/UserScript==
 /* globals GM_info, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
@@ -151,7 +151,7 @@ let active = false, button, file_list, thumb_list;
 }
 `);
     document.body.appendChild(sheet);
-    let cont = $("#upload_container");
+    let cont = $("#uploadContainer");
     button = $e("label", {
         "for": "volanail-button",
         "id": "volanail-button",
