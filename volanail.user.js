@@ -9,7 +9,7 @@
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/finally.js
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/pool.js
 // @grant       none
-// @version     1.3
+// @version     1.4
 // ==/UserScript==
 /* globals GM_info, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
@@ -81,9 +81,11 @@ let active = false, button, file_list, thumb_list;
   position: relative;
   z-index: 150;
   font-size: 18px;
+  padding-bottom: 1px;
+  margin-right: 1ex
 }
 .volanail-button[active] {
-  box-shadow: inset 0px 0px 8px 3px rgba(120, 120, 120, 0.9);
+  box-shadow: inset 0px 0px 5px 3px rgba(47, 47, 47, 0.5);
 }
 #volanail-list {
   display: flex;
