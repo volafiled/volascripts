@@ -33,6 +33,29 @@ select {
 table th {
     background-color: var(--main-bg-color);
 }
+
+#chat_header,
+#files_header,
+#name_container,
+#room_search {
+    height: 2em;
+    line-height: 2em;
+}
+
+.header_row_element {
+    line-height: 2em;
+}    
+
+#volafile_icon_svg {
+    height: 2em;
+    width: 2em;
+}
+
+#chat_frame,
+#files_frame {
+    top: 2em;
+}
+
 .filelist_file {
     border-bottom: 1px solid var(--main-bg-color);
 }
@@ -93,11 +116,13 @@ table th {
     font-size: inherit;
 }
 .toggle > span.toggle_icon,
-.toggle > *{
+.toggle > *,
+#toggles span.toggle_icon {
     color: var(--input-disabled-color) !important;	
 }
 .toggle.enabled > span.toggle_icon,
-.toggle.enabled > * {
+.toggle.enabled > *,
+#toggles>.toggle.enabled span.toggle_icon {
     color: #f6f1f1 !important;    
 }
 
@@ -256,6 +281,34 @@ input[type=submit].light:hover {
 }
 .ui_frame_content .button.light:hover {
     background-color: var(--button-light-hi-color);
+}
+
+#files_header {
+    background-color: var(--main-bg-color);
+}
+
+#chat_name_container {
+    background-color: var(--main-bg-color);
+}
+
+#volafile_icon_svg {
+    background-color: var(--main-bg-color);
+}
+
+#chat_user_angle_up {
+    padding-left: 0.7ex;
+}
+
+#chat_user_icon {
+    padding-right: 0.7ex;
+}
+
+#toggles span.toggle_text {
+    display: none;
+}
+
+#room_search {
+    margin-left: 1em;
 }
 
 #chat_hbar_buttons {
