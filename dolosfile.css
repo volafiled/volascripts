@@ -55,6 +55,7 @@ table th {
     padding-left: 0.5ex;
 }
 
+#clearsearch,
 .header_row_element {
     line-height: 2em;
 }    
@@ -155,6 +156,7 @@ table th {
     color: #f6f1f1 !important;    
 }
 
+#search_input:hover,
 #toggles>.toggle:hover {
     background-color: rgba(120, 120, 120, 0.1);
     border-radius: 3px;
