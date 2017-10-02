@@ -172,6 +172,10 @@ body:not(.mobile_filelist) #toggles span.toggle_container {
     margin-right: 1ex;
 }
 
+#toggles>.toggle:active {
+    background: transparent;
+}
+
 #room_search {
    background-color: var(--input-color);
 }
@@ -261,7 +265,8 @@ textarea[disabled] {
     background-color: var(--file-color);
 }
 
-.chat_file:hover {
+.chat_file:hover,
+.chat_file:active {
     background-color: var(--file-hover-color);
 }
 
