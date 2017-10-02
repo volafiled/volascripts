@@ -66,6 +66,10 @@ table th {
     padding: 0 .8em;
 }
 
+#volafile_icon_svg #v_stroke {
+    stroke-width: 80px;
+}
+
 #chat_frame,
 #files_frame {
     top: 2em;
@@ -135,6 +139,8 @@ table th {
     border: 0;
     margin-top: 1px;
     margin-bottom: 1px;
+    padding-left: 1ex;
+    padding-right: 1ex;
 }
 
 #user_count {
@@ -162,9 +168,21 @@ table th {
     border-radius: 3px;
 }
 
+body:not(.mobile_filelist) #toggles span.toggle_container {
+    margin-right: 1ex;
+}
+
 #room_search {
    background-color: var(--input-color);
+}
+
+body:not(.mobile_filelist) #room_search {
    margin-left: 1em;
+}
+
+#search_input:active, #search_input:focus, #search_input:valid {
+    background-color: transparent;
+    width: 25em;
 }
 
 .ui_frame_contextmenu {
@@ -363,8 +381,16 @@ input[type=submit].light:hover {
     background-color: var(--main-bg-color);
 }
 
+#room_name_angle_down,
+#chat_user_angle_up,
+#chat_user_icon,
+#clearsearch {
+    opacity: 0.3;
+}
+
 #chat_user_angle_up {
     padding-left: 0.7ex;
+    display: none;
 }
 
 #chat_user_icon {
