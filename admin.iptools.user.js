@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola IP Tools
-// @version      31
+// @version      32
 // @description  Hides ip addresses for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -216,22 +216,10 @@ body[noipspls] .tag_key_ip {
     });
   }
 
-  const nonadmin = new Set([
-    "Reports",
-    "ModLog",
-    "Room List",
-    ]);
-
   dry.replaceEarly("ui", "showContextMenu", function(orig, el, options) {
     try {
-      if (options && options.dedupe === "admin_contextmenu" && dry.exts.admin.isAdmin && el.options) {
-        options.buttons.forEach(b => b.admin = !nonadmin.has(b.text));
-        el.options.buttons.push(...options.buttons);
-        return;
-      }
-      if (options && options.dedupe === "room_contextmenu" && dry.exts.admin.isAdmin) {
-        dry.exts.adminButtons.showAdminMenu({el, options});
-        let idx = options.buttons.findIndex(e => e.text === "Reports");
+      if (options && options.dedupe === "admin_contextmenu" && dry.exts.admin.isAdmin) {
+        const idx = options.buttons.findIndex(e => e.text === "Reports");
         if (idx >= 0) {
           options.buttons.splice(idx + 1, 0, {
             icon: "icon-rules",
@@ -240,7 +228,9 @@ body[noipspls] .tag_key_ip {
             click: nukeRoom
           });
         }
-        idx = options.buttons.findIndex(e => e.text === "Copy URL");
+      }
+      if (options && options.dedupe === "room_contextmenu" && dry.exts.admin.isAdmin) {
+        const idx = options.buttons.findIndex(e => e.text === "Copy URL");
         if (idx >= 0) {
           options.buttons.splice(idx, 1);
         }
@@ -249,28 +239,7 @@ body[noipspls] .tag_key_ip {
     catch (ex) {
       console.error("ex", ex);
     }
-    const ctx = orig(el, options);
-    try {
-      if (ctx && options && options.dedupe === "room_contextmenu" && dry.exts.admin.isAdmin) {
-        const {content} = ctx;
-        content.style.display = "grid";
-        content.style.gridTemplate = `1fr / [room] 1fr [admin] 1fr`;
-        content.style.gridAutoFlow = "column dense";
-        const admins = new Set(options.buttons.filter(b => b && b.admin).map(b => b.text));
-        for (var a of Array.from(content.querySelectorAll("a"))) {
-          if (admins.has(a.children[1].textContent)) {
-            a.style.gridColumn = "admin / span 1";
-          }
-          else {
-            a.style.gridColumn = "room / span 1";
-          }
-        }
-      }
-    }
-    catch (ex) {
-      console.error("ex", ex);
-    }
-    return ctx;
+    return orig(el, options);
   });
 
   dry.replaceEarly("admin", "showBanWindow",
