@@ -43,12 +43,23 @@ table th {
     border-top-color: var(--header-hi-color) !important;
 }
 
+#admin_button,
 #chat_header,
 #files_header,
 #name_container,
 #room_search {
     height: 2em;
     line-height: 2em;
+}
+
+#admin_button {
+    background-color: var(--main-bg-color);
+    width: 2em;
+}
+
+#admin_button_icon {
+    font-size: 1em;
+    vertical-align: center;
 }
 
 #name_container {
@@ -432,6 +443,10 @@ input[type=submit].light:hover {
 .top_nav_item:visited,
 body {
     color: rgb(231, 231, 231);
+}
+
+.top_nav_item:hover {
+    background: var(--header-hi-color);
 }
 
 .chat_message .username .clickable:not(:hover) {
