@@ -71,13 +71,13 @@ table th {
     line-height: 2em;
 }    
 
-#volafile_icon_svg {
+#home_button {
     height: 2em;
     width: 2em;
     padding: 0 .8em;
 }
 
-#volafile_icon_svg #v_stroke {
+.volafile_icon_svg.button .v_stroke {
     stroke-width: 80px;
 }
 
@@ -393,8 +393,16 @@ input[type=submit].light:hover {
     background-color: var(--main-bg-color);
 }
 
-#volafile_icon_svg {
+#home_button {
     background-color: var(--main-bg-color);
+}
+
+#loading_frame {
+    background-color: var(--main-bg-color);
+}
+
+#loading_text {
+    color: white;
 }
 
 #room_name_angle_down,
