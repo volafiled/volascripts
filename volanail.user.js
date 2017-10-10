@@ -9,7 +9,7 @@
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/finally.js
 // @require     https://cdn.rawgit.com/RealDolos/node-4get/1be8052af5770998d6d936fdd5eb717571b205c8/lib/pool.js
 // @grant       none
-// @version     1.5
+// @version     1.6
 // ==/UserScript==
 /* globals GM_info, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
@@ -190,7 +190,7 @@ let active = false, button, file_list, thumb_list;
 })();
 
 const force_update = () => {
-    dry.exts.filelist.update_info.oldUnseenFiles = -1; // force the update m8
+    dry.exts.filelist.updateInfo.oldUnseenFiles = -1; // force the update m8
     dry.exts.filelist.scheduleDomUpdate();
 };
 
