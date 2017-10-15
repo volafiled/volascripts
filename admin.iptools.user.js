@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola IP Tools
-// @version      32
+// @version      33
 // @description  Hides ip addresses for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -91,7 +91,7 @@ body[noipspls] .tag_key_ip {
         try {
           let res = await new Promise((resolve, reject) => {
             dry.unsafeWindow.Volafile.makeAPIRequest("getRoomConfig", {
-              id: room
+              room
             }, (err, res) => err || !res || !res.name ? reject(err) : resolve(res));
           });
           for (const el of elems) {
@@ -221,7 +221,7 @@ body[noipspls] .tag_key_ip {
       if (options && options.dedupe === "admin_contextmenu" && dry.exts.admin.isAdmin) {
         const idx = options.buttons.findIndex(e => e.text === "Reports");
         if (idx >= 0) {
-          options.buttons.splice(idx + 1, 0, {
+          options.buttons.push({
             icon: "icon-rules",
             text: "Nuke Room",
             admin: true,
