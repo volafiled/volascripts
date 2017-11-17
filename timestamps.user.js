@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         Vola Timestamps
-// @version      3
+// @version      4
 // @description  Dongo said to make this
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
 // @author       topkuk productions
 // @match        https://volafile.org/r/*
+// @require      https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
 // @require      https://cdn.rawgit.com/RealDolos/volascripts/1dd689f72763c0e59f567fdf93865837e35964d6/dry.js
 // @grant        none
 // @run-at       document-start
@@ -13,7 +14,7 @@
 
 dry.once("dom", () => {
     "use strict";
-    console.log("running", GM_info.script.name, GM_info.script.version, dry.version);
+    console.log("running", GM.info.script.name, GM.info.script.version, dry.version);
 
     const style = document.createElement("style");
     style.textContent = `
