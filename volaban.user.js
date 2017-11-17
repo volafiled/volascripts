@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         VolaBan
-// @version      2
+// @version      3
 // @description  Filter annoying users
 // @namespace    https://volafile.org
 // @include      https://volafile.org/r/*
 // @icon         https://volafile.org/favicon.ico
 // @author       topkuk productions
 // @match        https://volafile.org/r/*
+// @require      https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
 // @require      https://cdn.rawgit.com/RealDolos/volascripts/1dd689f72763c0e59f567fdf93865837e35964d6/dry.js
 // @grant        none
 // @run-at       document-start
@@ -21,7 +22,7 @@
         whites: ["real", "dolos"]
     };
 
-    console.log("running", GM_info.script.name, GM_info.script.version, dry.version);
+    console.log("running", GM.info.script.name, GM.info.script.version, dry.version);
 
     let bans;
 
