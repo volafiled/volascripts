@@ -1,26 +1,40 @@
 // ==UserScript==
 // @name         Vola IP Tools
-// @version      33
-// @description  Hides ip addresses for mods.
+// @version      34
+// @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
 // @author       topkuk productions
 // @match        https://volafile.org/r/*
+// @require      https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
 // @require      https://cdn.rawgit.com/RealDolos/volascripts/51b76c05be26adca7b4a4897115f67f10d9df668/dry.js
 // @run-at       document-start
 // @grant        none
 // ==/UserScript==
 
-/* global dry, GM_info */
+/* global dry, GM */
 
 dry.once("dom", () => {
   "use strict";
 
-  console.log(
-    "running", GM_info.script.name, GM_info.script.version, dry.version);
+  function $e(tag, attrs, text) {
+    let rv = document.createElement(tag);
+    attrs = attrs || {};
+    for (let a in attrs) {
+        rv.setAttribute(a, attrs[a]);
+    }
+    if (text) {
+        rv.textContent = text;
+    }
+    return rv;
+  }
 
-  const style = document.createElement("style");
-  style.textContent = `
+  const $ = (sel, el) => (el || document).querySelector(sel);
+
+  console.log(
+    "running", GM.info.script.name, GM.info.script.version, dry.version);
+
+  const style = $e("style", {id: "iptools-style"}, `
 body[noipspls] a.username > span:not([class]),
 body[noipspls] a.username > span[class=""],
 body[noipspls] .tag_key_ip {
@@ -47,7 +61,17 @@ body[noipspls] .tag_key_ip {
 .username.ban icon-hammer {
   padding: 0;
 }
-`;
+.icon-untick {
+  margin: 0 !important;
+}
+.untick-button {
+  position: relative;
+  z-index: 150;
+  font-size: 18px;
+  padding-bottom: 1px;
+  margin-right: 1ex;
+}
+`);
   document.body.appendChild(style);
   let state = localStorage.getItem("noipspls") !== "false";
   if (state !== false) {
@@ -219,15 +243,12 @@ body[noipspls] .tag_key_ip {
   dry.replaceEarly("ui", "showContextMenu", function(orig, el, options) {
     try {
       if (options && options.dedupe === "admin_contextmenu" && dry.exts.admin.isAdmin) {
-        const idx = options.buttons.findIndex(e => e.text === "Reports");
-        if (idx >= 0) {
-          options.buttons.push({
-            icon: "icon-rules",
-            text: "Nuke Room",
-            admin: true,
-            click: nukeRoom
-          });
-        }
+        options.buttons.push({
+          icon: "icon-rules",
+          text: "Nuke Room",
+          admin: true,
+          click: nukeRoom
+        });
       }
       if (options && options.dedupe === "room_contextmenu" && dry.exts.admin.isAdmin) {
         const idx = options.buttons.findIndex(e => e.text === "Copy URL");
@@ -317,4 +338,25 @@ body[noipspls] .tag_key_ip {
         }
       });
     });
+
+  const doet = Symbol("doet");
+  const cont = $("#upload_container");
+  const button = $e("label", {
+    "for": "untick-button",
+    "id": "untick-button",
+    "class": "button untick-button",
+    "title": "Untick all!"
+  });
+  button.appendChild($e("span", {
+    "class": "icon-minus"
+  }));
+  button.addEventListener("click", () => dry.exts.adminButtons.untickAll(doet));
+  cont.insertBefore(button, cont.firstChild);
+
+  dry.replaceEarly("adminButtons", "untickAll", function(orig, kek) {
+    if (kek !== doet) {
+      return;
+    }
+    return orig();
+  });
 });
