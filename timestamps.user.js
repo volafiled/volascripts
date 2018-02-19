@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Timestamps
-// @version      4
+// @version      5
 // @description  Dongo said to make this
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -22,6 +22,8 @@ dry.once("dom", () => {
   -moz-user-select: none;
   user-select: none;
   display: inline-block;
+  font-size: 82%;
+  padding-right: 1em;
 }
 [timestamps="false"] .username.timestamp {
   display: none;
@@ -31,7 +33,9 @@ dry.once("dom", () => {
 
     const config_key = `${dry.config.room_id}-timestamps`;
     let enabled = localStorage.getItem(config_key);
+    let seconds = localStorage.getItem(config_key + "seconds");
     enabled = enabled !== "disabled";
+    seconds = seconds === "enabled";
 
     new class extends dry.MessageFilter {
         showMessage(orig, nick, message, options) {
@@ -50,8 +54,8 @@ dry.once("dom", () => {
                 hour12: false,
                 hour: "2-digit",
                 minute: "2-digit",
-                second: "2-digit",
-            }) + " |";
+                second: seconds ? "2-digit" : undefined
+            }) + " ";
             span.setAttribute("title", d.toLocaleString("eu"));
             m.timestamp_elem = span;
             m.elem.insertBefore(span, m.elem.firstChild);
@@ -62,6 +66,11 @@ dry.once("dom", () => {
             enabled = !enabled;
             localStorage.setItem(config_key, enabled ? "enabled" : "disabled");
             document.body.setAttribute("timestamps", "" + enabled);
+            return true;
+        }
+        toggleseconds(e) {
+            seconds = !seconds;
+            localStorage.setItem(config_key + "seconds", seconds ? "enabled" : "disabled");
             return true;
         }
     }();
