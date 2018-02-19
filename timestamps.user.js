@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Timestamps
-// @version      5
+// @version      6
 // @description  Dongo said to make this
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -32,8 +32,9 @@ dry.once("dom", () => {
     document.body.appendChild(style);
 
     const config_key = `${dry.config.room_id}-timestamps`;
+    const seconds_key = `timestamps-seconds`;
     let enabled = localStorage.getItem(config_key);
-    let seconds = localStorage.getItem(config_key + "seconds");
+    let seconds = localStorage.getItem(seconds_key);
     enabled = enabled !== "disabled";
     seconds = seconds === "enabled";
 
@@ -70,7 +71,7 @@ dry.once("dom", () => {
         }
         toggleseconds(e) {
             seconds = !seconds;
-            localStorage.setItem(config_key + "seconds", seconds ? "enabled" : "disabled");
+            localStorage.setItem(seconds_key, seconds ? "enabled" : "disabled");
             return true;
         }
     }();
