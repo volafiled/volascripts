@@ -10,7 +10,7 @@
 // @require     https://cdn.rawgit.com/RealDolos/node-parrot/acb622d5d9af34f0de648385e6ab4d2411373037/parrot/finally.js
 // @require     https://cdn.rawgit.com/RealDolos/node-parrot/acb622d5d9af34f0de648385e6ab4d2411373037/parrot/pool.js
 // @grant       none
-// @version     1.8
+// @version     1.9
 // ==/UserScript==
 /* globals GM, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
@@ -270,7 +270,7 @@ class Thumbnail {
     container.classList[
       fileElement.classList.contains("file_selected") ? "add" : "remove"
     ]("volanail-checked");
-    this.setMedia(this.loading_image.cloneNode(true));
+    this.setMedia(make_image(ICON_LOADING));
   }
 
   setMedia(el) {
@@ -288,7 +288,7 @@ class Thumbnail {
       await this.addInfo(await this.getInfo(file, 5000));
     }
     catch (ex) {
-      this.setMedia(this.error_image.cloneNode(true));
+      this.setMedia(make_image(ICON_ERROR));
       throw ex;
     }
   }
@@ -435,10 +435,6 @@ const make_image = src => {
   img.classList.add("volanail-media");
   return img;
 };
-Object.assign(Thumbnail.prototype, {
-  error_image: make_image(ICON_ERROR),
-  loading_image: make_image(ICON_LOADING),
-});
 
 const prepare_file = dry.exportFunction(file => {
   try {
