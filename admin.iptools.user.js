@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Admin/IP Tools
-// @version      35
+// @version      40
 // @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -162,6 +162,7 @@ body[noipspls] .tag_key_ip {
                 pieces.shift();
               }
               pieces.shift();
+              console.log(pieces);
               if (pieces.length > 2) {
                 return;
               }
@@ -174,14 +175,16 @@ body[noipspls] .tag_key_ip {
               m.value = `${pre.trim()}${post}`;
               pieces = pieces.map(e => e.startsWith("(") ? e.slice(1, -1) : e);
               let [user, ip] = pieces;
-              if (!ip) {
+              if (!ip && user.includes(".")) {
                 ip = user;
                 // XXX workaround for lainbug
                 user = " ";
               }
               options.profile = user;
-              data = data || new dry.unsafeWindow.Object();
-              data.ip = ip;
+              if (ip) {
+                data = data || new dry.unsafeWindow.Object();
+                data.ip = ip;
+              }
             }
             catch (ex) {
               console.error(ex);
@@ -198,7 +201,7 @@ body[noipspls] .tag_key_ip {
       }
       const msg = orig(...[nick, message, options, data].concat(args));
       try {
-        if (msg && msg.ip_elem) {
+        if (msg && msg.ip_elem || msg.options.profile) {
           msg.ban_elem = document.createElement("span");
           const hammer = document.createElement("i");
           hammer.setAttribute("class", "chat_message_icon icon-hammer");
