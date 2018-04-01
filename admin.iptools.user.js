@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Admin/IP Tools
-// @version      40
+// @version      41
 // @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -177,10 +177,10 @@ body[noipspls] .tag_key_ip {
               let [user, ip] = pieces;
               if (!ip && user.includes(".")) {
                 ip = user;
-                // XXX workaround for lainbug
-                user = " ";
               }
-              options.profile = user;
+              if (user) {
+                options.profile = user;
+              }
               if (ip) {
                 data = data || new dry.unsafeWindow.Object();
                 data.ip = ip;
@@ -207,10 +207,6 @@ body[noipspls] .tag_key_ip {
           hammer.setAttribute("class", "chat_message_icon icon-hammer");
           msg.ban_elem.appendChild(hammer);
           msg.ban_elem.setAttribute("class", "username clickable ban");
-          // XXX workaround for lainbug
-          if (!msg.options.profile) {
-            msg.options.profile = " ";
-          }
           msg.ban_elem.addEventListener("click", msg.showBanWindow.bind(msg));
           msg.nick_elem.appendChild(msg.ban_elem);
         }
