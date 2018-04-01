@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name         Vola IP Tools
-// @version      34
+// @name         Vola Admin/IP Tools
+// @version      35
 // @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -144,32 +144,51 @@ body[noipspls] .tag_key_ip {
             message = [message];
           }
           const newmsg = new dry.unsafeWindow.Array();
+          const search = ["banned", "muted", "hellbanned", "timed"];
           message.forEach(m => {
             try {
-              if (m && m.type === "text") {
-                let pieces = m.value.match(/^(.+?)( to ([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(.+)$/);
-                if (!pieces) {
-                  pieces = m.value.match(/^(.+?)( \(([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})\))(.+)$/);
-                }
-                if (!pieces) {
-                  pieces = m.value.match(/^(.+?)( ([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]+))(.*?)$/);
-                }
-                if (!pieces) {
-                  newmsg.push(m);
-                  return;
-                }
-                newmsg.push({type: "text", value: pieces[1] + pieces[4]});
-                if (!data) {
-                  data = new dry.unsafeWindow.Object();
-                  [,,, data.ip] = pieces;
-                }
+              if (!m || m.type !== "text" || !search.some(e => m.value.includes(e))) {
                 return;
               }
+              const {value} = m;
+              let idx = value.indexOf(" / ");
+              if (idx <= 0) {
+                return;
+              }
+              let pre = value.slice(0, idx);
+              const post = value.slice(idx);
+              let [,...pieces] = pre.split(/ /g);
+              while (pieces[0].endsWith(",")) {
+                pieces.shift();
+              }
+              pieces.shift();
+              if (pieces.length > 2) {
+                return;
+              }
+              for (let p of pieces) {
+                if (!p.includes(".")) {
+                  continue;
+                }
+                pre = pre.replace(p, "");
+              }
+              m.value = `${pre.trim()}${post}`;
+              pieces = pieces.map(e => e.startsWith("(") ? e.slice(1, -1) : e);
+              let [user, ip] = pieces;
+              if (!ip) {
+                ip = user;
+                // XXX workaround for lainbug
+                user = " ";
+              }
+              options.profile = user;
+              data = data || new dry.unsafeWindow.Object();
+              data.ip = ip;
             }
             catch (ex) {
               console.error(ex);
             }
-            newmsg.push(m);
+            finally {
+              newmsg.push(m);
+            }
           });
           message = newmsg;
         }
@@ -185,6 +204,10 @@ body[noipspls] .tag_key_ip {
           hammer.setAttribute("class", "chat_message_icon icon-hammer");
           msg.ban_elem.appendChild(hammer);
           msg.ban_elem.setAttribute("class", "username clickable ban");
+          // XXX workaround for lainbug
+          if (!msg.options.profile) {
+            msg.options.profile = " ";
+          }
           msg.ban_elem.addEventListener("click", msg.showBanWindow.bind(msg));
           msg.nick_elem.appendChild(msg.ban_elem);
         }
@@ -263,81 +286,13 @@ body[noipspls] .tag_key_ip {
     return orig(el, options);
   });
 
-  dry.replaceEarly("admin", "showBanWindow",
-    function(orig, ips, uploading, chat, blacklist) {
-      function change(form, reasons) {
-        const reasontype = form.reason_elem.value;
-        const reason = reasons[reasontype];
-        if (reason.custom) {
-          form.mute_elem.checked = !!chat;
-          form.ban_elem.checked = !!uploading;
-          form.creason_elem.value = "";
-          form.hours_elem.value = "1";
-          return;
-        }
-        form.mute_elem.checked = !!reason.mute;
-        form.ban_elem.checked = !!reason.upload;
-        form.hellban_elem.checked = !!reason.hellban;
-        form.hours_elem.value = `${reason.hours}`;
-        form.creason_elem.value = reason.reason || reason.text;
-      }
-
-      if (!this.isAdmin) {
-        return;
-      }
-      uploading = !!uploading;
-      chat = !!chat;
-      const tmpl = this.import("templates");
-      const conn = this.import("connection");
-      const reasons = Object.assign({}, tmpl.render("bans"));
-      if (blacklist) {
-        for (const k of Object.keys(reasons)) {
-          const b = reasons[k];
-          if (!b.upload && !b.hellban && !b.custom) {
-            delete reasons[k];
-            continue;
-          }
-          if (b.upload && b.hours <= 24) {
-            b.upload = false;
-          }
-        }
-      }
-      if (chat || uploading) {
-        for (const k of Object.keys(reasons)) {
-          const b = reasons[k];
-          const n = !!b.default_upload;
-          const s = !!b.default_mute;
-          b.default = s === chat && n === uploading;
-        }
-      }
-      const form = tmpl.renderForm("forms.ban", {
-        ips,
-        uploading,
-        chat,
-        reasons,
-        blacklist
-      });
-      change(form, reasons);
-      form.reason_elem.addEventListener("change", () => change(form, reasons));
-      form.on("submit", function() {
-        this.dismiss();
-        const options = {
-          hours: parseFloat(this.hours),
-          reason: this.creason.trim(),
-          purgeFiles: this.purge || false,
-          ban: this.ban,
-          hellban: this.hellban,
-          mute: this.mute
-        };
-        if (blacklist) {
-          conn.call("blacklistFiles", ips, options);
-          return;
-        }
-        for (let i = this.ip.split(","), n = 0; n < i.length; n++) {
-          conn.call("banUser", i[n].trim(), options);
-        }
-      });
-    });
+  // fixup ban templates
+  for (const b of Object.values(window._templates.bans)) {
+    b.lock = b.locked = false;
+     if (b.upload && b.hours <= 24) {
+       b.upload = false;
+     }
+  }
 
   const doet = Symbol("doet");
   const cont = $("#upload_container");
