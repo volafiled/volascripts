@@ -10,7 +10,7 @@
 // @require     https://cdn.rawgit.com/RealDolos/node-parrot/acb622d5d9af34f0de648385e6ab4d2411373037/parrot/finally.js
 // @require     https://cdn.rawgit.com/RealDolos/node-parrot/acb622d5d9af34f0de648385e6ab4d2411373037/parrot/pool.js
 // @grant       none
-// @version     1.9
+// @version     2.0
 // ==/UserScript==
 /* globals GM, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
@@ -246,7 +246,7 @@ class Thumbnail {
     container.appendChild(name);
     const infos = this.infos = $e("div", {
       class: "volanail-infos"
-    }, `${format.prettySize(file.size)} - ${file.tags.user || "n/a"}`);
+    }, `${format.prettySize(file.size)} - ${file.tags.user || file.tags.nick || "n/a"}`);
     container.appendChild(infos);
     container.doLoad = () => {
       try {
@@ -364,6 +364,17 @@ class Thumbnail {
         "div",
         null,
         `${info.video.codec} - ${format.duration((info.video.duration || 0) * 1000)} - ${info.video.width || 0}×${info.video.height || 0}`);
+      if (ip) {
+        fmt.appendChild(ip);
+      }
+      this.infos.insertBefore(fmt, this.infos.firstChild);
+    }
+    if (info.image) {
+      const format = info.image.format ? `${info.image.format} - ` : "";
+      const fmt = $e(
+        "div",
+        null,
+        `${format} ${info.image.width || 0}×${info.image.height || 0}`);
       if (ip) {
         fmt.appendChild(ip);
       }
