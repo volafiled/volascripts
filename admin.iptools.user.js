@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Admin/IP Tools
-// @version      42
+// @version      43
 // @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -144,10 +144,10 @@ body[noipspls] .tag_key_ip {
             message = [message];
           }
           const newmsg = new dry.unsafeWindow.Array();
-          const search = ["banned", "muted", "hellbanned", "timed"];
+          const search = ["banned", "muted", "hellbanned", "timed", "nothing"];
           message.forEach(m => {
             try {
-              if (!m || m.type !== "text" || !search.some(e => m.value.includes(e))) {
+              if (!m || m.type !== "text" || !m.value || !search.some(e => m.value.includes(e))) {
                 return;
               }
               const {value} = m;
@@ -162,12 +162,11 @@ body[noipspls] .tag_key_ip {
                 post = value.slice(idx);
               }
               let [,...pieces] = pre.split(/ /g);
-              while (pieces[0].endsWith(",")) {
+              while (pieces[0].endsWith(",") || pieces[0] === "did" || pieces[0] === "nothing") {
                 pieces.shift();
               }
               pieces.shift();
-              console.log(pieces);
-              if (pieces.length > 2) {
+              if (!pieces.length || pieces.length > 2) {
                 return;
               }
               for (let p of pieces) {
@@ -179,8 +178,9 @@ body[noipspls] .tag_key_ip {
               m.value = `${pre.trim()}${post}`;
               pieces = pieces.map(e => e.startsWith("(") ? e.slice(1, -1) : e);
               let [user, ip] = pieces;
-              if (!ip && user.includes(".")) {
+              if (!ip && user && user.includes(".")) {
                 ip = user;
+                user = null;
               }
               if (user) {
                 options.profile = user;
