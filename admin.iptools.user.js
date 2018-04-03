@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Admin/IP Tools
-// @version      41
+// @version      42
 // @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -152,11 +152,15 @@ body[noipspls] .tag_key_ip {
               }
               const {value} = m;
               let idx = value.indexOf(" / ");
+              let pre, post;
               if (idx <= 0) {
-                return;
+                pre = value;
+                post = "";
               }
-              let pre = value.slice(0, idx);
-              const post = value.slice(idx);
+              else {
+                pre = value.slice(0, idx);
+                post = value.slice(idx);
+              }
               let [,...pieces] = pre.split(/ /g);
               while (pieces[0].endsWith(",")) {
                 pieces.shift();
@@ -201,7 +205,7 @@ body[noipspls] .tag_key_ip {
       }
       const msg = orig(...[nick, message, options, data].concat(args));
       try {
-        if (msg && msg.ip_elem || msg.options.profile) {
+        if (msg && (msg.ip_elem || msg.options.profile)) {
           msg.ban_elem = document.createElement("span");
           const hammer = document.createElement("i");
           hammer.setAttribute("class", "chat_message_icon icon-hammer");
