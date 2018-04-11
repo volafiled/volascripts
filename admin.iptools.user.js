@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Admin/IP Tools
-// @version      45
+// @version      46
 // @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -17,13 +17,10 @@
 dry.once("dom", () => {
   "use strict";
 
-  const IS_BAN = /\b(?:banned|muted|hellbanned|unbanned|un-muted|timed-in|did nothing to)\b/;
+  const IS_BAN = /^\S+ (?:banned|muted|hellbanned|unbanned|un-muted|timed-in)\b/;
 
   function adjustBanPart(p, users, ips) {
     const {value} = p;
-    if (!IS_BAN.test(value)) {
-      return;
-    }
     let slash = value.indexOf(" / ");
     if (slash < 0) {
       slash = value.length;
@@ -196,6 +193,10 @@ body[noipspls] .tag_key_ip {
               if (p.type !== "text") {
                 continue;
               }
+              if (!IS_BAN.test(p.value)) {
+                continue;
+              }
+
               adjustBanPart(p, users, ips);
             }
           }
