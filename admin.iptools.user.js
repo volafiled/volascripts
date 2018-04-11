@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Admin/IP Tools
-// @version      44
+// @version      45
 // @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -205,7 +205,7 @@ body[noipspls] .tag_key_ip {
           }
           if (ips.length) {
             if (!data) {
-              data = new unsafeWindow.Object();
+              data = new dry.unsafeWindow.Object();
             }
             data.ip = ips.join(" ip:");
           }
@@ -217,8 +217,14 @@ body[noipspls] .tag_key_ip {
       const msg = orig(...[nick, message, options, data].concat(args));
       try {
         if (options.unprofile && msg.nick_elem) {
-          const newnick = document.createElement("span");
+          const newnick = document.createElement("a");
+          if (msg.ip_elem) {
+            msg.ip_elem.parentElement.removeChild(msg.ip_elem);
+          }
           newnick.textContent = msg.nick_elem.textContent;
+          if (msg.ip_elem) {
+            newnick.appendChild(msg.ip_elem);
+          }
           newnick.className = msg.nick_elem.className;
           msg.nick_elem.parentElement.replaceChild(newnick, msg.nick_elem);
           msg.nick_elem = newnick;
