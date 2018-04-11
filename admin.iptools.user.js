@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Admin/IP Tools
-// @version      43
+// @version      44
 // @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -16,6 +16,45 @@
 
 dry.once("dom", () => {
   "use strict";
+
+  const IS_BAN = /\b(?:banned|muted|hellbanned|unbanned|un-muted|timed-in|did nothing to)\b/;
+
+  function adjustBanPart(p, users, ips) {
+    const {value} = p;
+    if (!IS_BAN.test(value)) {
+      return;
+    }
+    let slash = value.indexOf(" / ");
+    if (slash < 0) {
+      slash = value.length;
+    }
+    const pre = value.slice(0, slash).replace("did nothing to", "did-nothing-to");
+    const post = value.slice(slash);
+    const pieces = pre.split(/ /g);
+    let idx = 1;
+    while (idx < pieces.length) {
+      if (!pieces[idx++].endsWith(",")) {
+        break;
+      }
+    }
+    const pusers = pieces.slice(idx).map(u => {
+      u = u.replace(/(?:[()]|,$)/g, "").trim();
+      if (/^\d+\.\d+\.\d+\.\d+$/.test(u)) {
+        ips.push(u);
+        return null;
+      }
+      if (u) {
+        users.push(u);
+      }
+      return u;
+    }).filter(e => e).sort();
+
+    if (!pusers.length) {
+      pusers.push("some cuck");
+    }
+
+    p.value = `${pieces.slice(0, idx).join(" ").replace("did-nothing-to", "did nothing to")} ${pusers.join(", ")}${post}`;
+  }
 
   function $e(tag, attrs, text) {
     let rv = document.createElement(tag);
@@ -136,68 +175,40 @@ body[noipspls] .tag_key_ip {
   dry.replaceEarly("chat", "showMessage",
     function(orig, nick, message, options, data, ...args) {
       try {
-        if (nick === "Log" && options.staff) {
-          if (typeof (message) === "string") {
-            message = {type: "text", value: message};
+        if (nick === "Log" && options.staff && !options.profile && !(data && data.ip)) {
+          const users = [];
+          const ips = [];
+          if (message[0].type === "url" && message[0].href === "/reports") {
+            if (message[1].value.startsWith(" / BLACKLIST ")) {
+              adjustBanPart(message[4], users, ips);
+            }
+            else {
+              const [, p] = message;
+              const m = p.value.match(/ \((\d+\.\d+\.\d+\.\d+)\)/);
+              if (m) {
+                p.value = p.value.replace(m[0], "").trim();
+                ips.push(m[1]);
+              }
+            }
           }
-          if (!message.forEach) {
-            message = [message];
+          else {
+            for (const p of message) {
+              if (p.type !== "text") {
+                continue;
+              }
+              adjustBanPart(p, users, ips);
+            }
           }
-          const newmsg = new dry.unsafeWindow.Array();
-          const search = ["banned", "muted", "hellbanned", "timed", "nothing"];
-          message.forEach(m => {
-            try {
-              if (!m || m.type !== "text" || !m.value || !search.some(e => m.value.includes(e))) {
-                return;
-              }
-              const {value} = m;
-              let idx = value.indexOf(" / ");
-              let pre, post;
-              if (idx <= 0) {
-                pre = value;
-                post = "";
-              }
-              else {
-                pre = value.slice(0, idx);
-                post = value.slice(idx);
-              }
-              let [,...pieces] = pre.split(/ /g);
-              while (pieces[0].endsWith(",") || pieces[0] === "did" || pieces[0] === "nothing") {
-                pieces.shift();
-              }
-              pieces.shift();
-              if (!pieces.length || pieces.length > 2) {
-                return;
-              }
-              for (let p of pieces) {
-                if (!p.includes(".")) {
-                  continue;
-                }
-                pre = pre.replace(p, "");
-              }
-              m.value = `${pre.trim()}${post}`;
-              pieces = pieces.map(e => e.startsWith("(") ? e.slice(1, -1) : e);
-              let [user, ip] = pieces;
-              if (!ip && user && user.includes(".")) {
-                ip = user;
-                user = null;
-              }
-              if (user) {
-                options.profile = user;
-              }
-              if (ip) {
-                data = data || new dry.unsafeWindow.Object();
-                data.ip = ip;
-              }
+          if (users.length) {
+            options.profile = users.sort().join(" user:");
+            options.unprofile = true;
+          }
+          if (ips.length) {
+            if (!data) {
+              data = new unsafeWindow.Object();
             }
-            catch (ex) {
-              console.error(ex);
-            }
-            finally {
-              newmsg.push(m);
-            }
-          });
-          message = newmsg;
+            data.ip = ips.join(" ip:");
+          }
         }
       }
       catch (ex) {
@@ -205,6 +216,14 @@ body[noipspls] .tag_key_ip {
       }
       const msg = orig(...[nick, message, options, data].concat(args));
       try {
+        if (options.unprofile && msg.nick_elem) {
+          const newnick = document.createElement("span");
+          newnick.textContent = msg.nick_elem.textContent;
+          newnick.className = msg.nick_elem.className;
+          msg.nick_elem.parentElement.replaceChild(newnick, msg.nick_elem);
+          msg.nick_elem = newnick;
+          msg.elem.classList.remove("profile");
+        }
         if (msg && (msg.ip_elem || msg.options.profile)) {
           msg.ban_elem = document.createElement("span");
           const hammer = document.createElement("i");
