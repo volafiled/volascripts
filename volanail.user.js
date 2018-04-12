@@ -10,7 +10,7 @@
 // @require     https://cdn.rawgit.com/RealDolos/node-parrot/acb622d5d9af34f0de648385e6ab4d2411373037/parrot/finally.js
 // @require     https://cdn.rawgit.com/RealDolos/node-parrot/acb622d5d9af34f0de648385e6ab4d2411373037/parrot/pool.js
 // @grant       none
-// @version     2.0
+// @version     2.1
 // ==/UserScript==
 /* globals GM, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
@@ -285,27 +285,12 @@ class Thumbnail {
 
   async doLoadInternal(file) {
     try {
-      await this.addInfo(await this.getInfo(file, 5000));
+      await this.addInfo(await dry.exts.connection.getFileInfo(file.id));
     }
     catch (ex) {
       this.setMedia(make_image(ICON_ERROR));
       throw ex;
     }
-  }
-
-  getInfo(file, timeout) {
-    return new Promise(this.getInfoAsPromised.bind(this, file, timeout));
-  }
-
-  getInfoAsPromised(file, timeout, resolve, reject) {
-    setTimeout(reject, timeout || 5000);
-    dry.exts.connection.getFileInfo(file.id, function(e, info) {
-      if (e || !info) {
-        reject(e);
-        return;
-      }
-      resolve(info);
-    });
   }
 
   addInfo(info) {
