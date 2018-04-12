@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Admin/IP Tools
-// @version      46
+// @version      47
 // @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -149,10 +149,8 @@ body[noipspls] .tag_key_ip {
       while (roomqueue.size) {
         const [room, elems] = roomqueue[Symbol.iterator]().next().value;
         try {
-          let res = await new Promise((resolve, reject) => {
-            dry.unsafeWindow.Volafile.makeAPIRequest("getRoomConfig", {
-              room
-            }, (err, res) => err || !res || !res.name ? reject(err) : resolve(res));
+          let res = await dry.unsafeWindow.Volafile.makeAPIRequest("getRoomConfig", {
+            room
           });
           for (const el of elems) {
             el.textContent = res.name;
