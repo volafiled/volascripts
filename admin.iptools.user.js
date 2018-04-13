@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Admin/IP Tools
-// @version      47
+// @version      47.1
 // @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -181,7 +181,7 @@ body[noipspls] .tag_key_ip {
               const [, p] = message;
               const m = p.value.match(/ \((\d+\.\d+\.\d+\.\d+)\)/);
               if (m) {
-                p.value = p.value.replace(m[0], "").trim();
+                p.value = p.value.replace(m[0], "");
                 ips.push(m[1]);
               }
             }
