@@ -577,6 +577,7 @@ body:not(.mobile_filelist) .file_status {
     background-color: var(--snd-bg-color);
 }
 
+.page_admin_reports table,
 .page_admin_modlog table {
     table-layout: fixed;
     width: 100%;
@@ -589,6 +590,16 @@ body:not(.mobile_filelist) .file_status {
 }
 .page_admin_modlog table th:nth-child(4) {
     width: 7ex;
+}
+
+.page_admin_reports table th:nth-child(1) {
+    max-width: 9%;
+}
+.page_admin_reports table th:nth-child(4) {
+    width: 10%;
+}
+.page_admin_reports table th:nth-child(3) {
+    width: 53%;
 }
 
 #bottom_navigation_content {
