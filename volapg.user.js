@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VolaPG - Best crypto ever!!!1!
 // @namespace    https://volafile.org/
-// @version      38
+// @version      39
 // @description  If you think this will in any way protect you, you're wronk
 // @icon         https://volafile.org/favicon.ico
 // @author       topkuk productions
@@ -342,7 +342,7 @@ dry.once("dom", () => {
     c(e) {
       get_shit().then(shit => {
         dry.exts.chat.applyNick();
-        const enc = shit.obfuscate(dry.exts.user.name + dry.config.room_id, e);
+        const enc = shit.obfuscate(dry.exts.user.info.nick + dry.config.room_id, e);
         dry.exts.chat.chatInput.emit("submit", enc);
       });
       return true;
