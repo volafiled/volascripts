@@ -3,7 +3,7 @@
 // @namespace    https://volafile.org/
 // @author       topkuk productions
 // @icon         https://volafile.org/favicon.ico
-// @version      6
+// @version      7
 // @description  So you can better ignore people
 // @match        https://volafile.org/r/*
 // @require      https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
@@ -43,7 +43,7 @@ const filter = function(current, e) {
 
 const addn = dry.replaceLate("chat.chatInput", "addSuggestion",
   function(orig, str) {
-    const current = dry.exts.user.name.toUpperCase();
+    const current = dry.exts.user.info.nick.toUpperCase();
     const e = this.suggestions;
     str = str.toString();
     const ustr = str.toUpperCase();
