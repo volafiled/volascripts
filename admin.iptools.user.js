@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Admin/IP Tools
-// @version      47.1
+// @version      48
 // @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -282,9 +282,9 @@ body[noipspls] .tag_key_ip {
       if (!res) {
         return;
       }
-      dry.exts.connection.call("editInfo", {
+      dry.unsafeWindow.Volafile.setRoomConfig({
         name: "closed",
-        motd: "",
+        motd: "closed",
         disabled: true
       });
     });
@@ -292,7 +292,7 @@ body[noipspls] .tag_key_ip {
 
   dry.replaceEarly("ui", "showContextMenu", function(orig, el, options) {
     try {
-      if (options && options.dedupe === "admin_contextmenu" && dry.exts.admin.isAdmin) {
+      if (options && options.dedupe === "admin_contextmenu" && dry.exts.user.info.admin) {
         options.buttons.push({
           icon: "icon-rules",
           text: "Nuke Room",
@@ -300,7 +300,7 @@ body[noipspls] .tag_key_ip {
           click: nukeRoom
         });
       }
-      if (options && options.dedupe === "room_contextmenu" && dry.exts.admin.isAdmin) {
+      if (options && options.dedupe === "room_contextmenu" && dry.exts.user.info.admin) {
         const idx = options.buttons.findIndex(e => e.text === "Copy URL");
         if (idx >= 0) {
           options.buttons.splice(idx, 1);
