@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Admin/IP Tools
-// @version      48
+// @version      50
 // @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -12,7 +12,7 @@
 // @grant        none
 // ==/UserScript==
 
-/* global dry, GM */
+/* global dry, GM, _templates, RoomInstance */
 
 dry.once("dom", () => {
   "use strict";
@@ -71,8 +71,7 @@ dry.once("dom", () => {
     "running", GM.info.script.name, GM.info.script.version, dry.version);
 
   const style = $e("style", {id: "iptools-style"}, `
-body[noipspls] a.username > span:not([class]),
-body[noipspls] a.username > span[class=""],
+body[noipspls] .chat_message_ip,
 body[noipspls] .tag_key_ip {
   display: none;
 }
@@ -290,6 +289,32 @@ body[noipspls] .tag_key_ip {
     });
   }
 
+  function selectFreeform() {
+    const form = RoomInstance.extensions.templates.renderForm("forms.freeformselect", {});
+    form.on("submit", () => {
+    const items = form.values.freeform;
+      if (!items) {
+        console.error("no items");
+      }
+      const ids = new Set();
+      items.replace(/get\/(.+?)\//g, (m, id) => {
+        ids.add(id);
+      });
+      items.replace(/gallery=([a-zA-z0-9_-]+)/g, (m, id) => {
+        ids.add(id);
+      });
+      items.replace(/@([a-zA-z0-9_-]+)/g, (m, id) => {
+        ids.add(id);
+      });
+      console.log(ids);
+      RoomInstance.extensions.filelist.filelist.forEach(file => {
+        if (ids.has(file.id)) {
+          file.dom.controlElement.firstChild.click();
+        }
+      });
+    });
+  }
+
   dry.replaceEarly("ui", "showContextMenu", function(orig, el, options) {
     try {
       if (options && options.dedupe === "admin_contextmenu" && dry.exts.user.info.admin) {
@@ -298,6 +323,12 @@ body[noipspls] .tag_key_ip {
           text: "Nuke Room",
           admin: true,
           click: nukeRoom
+        });
+        options.buttons.push({
+          icon: "icon-broom",
+          text: "Freeform Select",
+          admin: true,
+          click: selectFreeform
         });
       }
       if (options && options.dedupe === "room_contextmenu" && dry.exts.user.info.admin) {
@@ -341,4 +372,12 @@ body[noipspls] .tag_key_ip {
     }
     return orig();
   });
+
+  _templates.forms.freeformselect = {
+    title: "Select files from freeform text",
+    fields: [
+      {type: "textarea", name: "freeform", placeholder: " ", label: "Text", rows: "8", cols:"30"},
+    ],
+    submit: "Select"
+  };
 });
