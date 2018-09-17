@@ -272,6 +272,29 @@ textarea[disabled] {
     white-space: normal;
 }
 
+a.chat_room {
+    text-decoration: underline;
+}
+
+a.chat_room:after {
+    content: none;
+    display: none;
+}
+
+a.chat_room:before {
+    display: inline-block;
+    content: '#';
+    font-weight: bold;
+    color: rgba(255,255,255,0.4);
+    padding-right: 0.3ex;
+    text-decoration: none !important;
+}
+
+a.chat_room:hover:before,
+a.chat_room:active:before{
+     color: rgba(255,255,255,0.8);
+}
+
 .chat_file {
     background-color: var(--file-color);
 }
