@@ -73,9 +73,13 @@ dry.once("dom", () => {
   const style = $e("style", {id: "iptools-style"}, `
 body[noipspls] a.username > span:not([class]),
 body[noipspls] a.username > span[class=""],
+body[noipspls] a.username > span.unselectable,
 body[noipspls] .tag_key_ip {
   display: none;
 }
+body[noipspls] a.username > span.hidden-select {
+  font-size: 100%;
+},
 .username.ban {
   display: inline-block;
 }
