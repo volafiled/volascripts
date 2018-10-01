@@ -274,6 +274,7 @@ textarea[disabled] {
 
 a.chat_room {
     text-decoration: underline;
+    display: inline-block;
 }
 
 a.chat_room:after {
