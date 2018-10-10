@@ -10,7 +10,7 @@
 // @require     https://cdn.rawgit.com/RealDolos/node-parrot/acb622d5d9af34f0de648385e6ab4d2411373037/parrot/finally.js
 // @require     https://cdn.rawgit.com/RealDolos/node-parrot/acb622d5d9af34f0de648385e6ab4d2411373037/parrot/pool.js
 // @grant       none
-// @version     3
+// @version     4
 // ==/UserScript==
 /* globals GM, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
@@ -401,27 +401,32 @@ class Thumbnail {
   }
 
   addInfoAsPromised(info, resolve, reject) {
-    this.icon.firstChild.className = this.icon.icon.firstChild.className;
-    delete this.icon.icon;
-    let ip;
-    if (info.uploader_ip) {
-      ip = $e("span", {class: "tag_key_ip"}, info.uploader_ip);
+    try {
+      this.icon.firstChild.className = this.icon.icon.firstChild.className;
+      delete this.icon.icon;
+      let ip;
+      if (info.uploader_ip) {
+        ip = $e("span", {class: "tag_key_ip"}, info.uploader_ip);
+      }
+      const {thumb = {}} = info;
+      const {type: ttype = "", name = "thumb"} = thumb;
+      if (ttype.startsWith("image/")) {
+        this.addInfoForThumb(info, ip, name, resolve, reject);
+        return;
+      }
+      if (ttype.startsWith("video/")) {
+        this.addInfoForVideoThumb(info, ip, name, resolve, reject);
+        return;
+      }
+      if (["thumb", "video_thumb"].some(a => this.file.assets.includes(a))) {
+        throw new Error("No thumb");
+      }
+      this.addInfoForGeneric(
+        info, ip, this.icon.firstChild.className, resolve, reject);
     }
-    const {thumb = {}} = info;
-    const {type: ttype = "", name = "thumb"} = thumb;
-    if (ttype.startsWith("image/")) {
-      this.addInfoForThumb(info, ip, name, resolve, reject);
-      return;
+    catch (ex) {
+      reject(ex);
     }
-    if (ttype.startsWith("video/")) {
-      this.addInfoForVideoThumb(info, ip, name, resolve, reject);
-      return;
-    }
-    if (["thumb", "video_thumb"].some(a => this.file.assets.includes(a))) {
-      reject(new Error("No thumb"));
-    }
-    this.addInfoForGeneric(
-      info, ip, this.icon.firstChild.className, resolve, reject);
   }
 }
 
