@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Timestamps
-// @version      8
+// @version      9
 // @description  Dongo said to make this
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -20,9 +20,6 @@ dry.once("dom", () => {
   const style = document.createElement("style");
   style.textContent = `
 .username.timestamp {
-  -moz-user-select: none;
-  user-select: none;
-  display: inline-block;
   font-size: 82%;
   padding-right: 1em;
 }
@@ -58,7 +55,7 @@ dry.once("dom", () => {
         return;
       }
       let span = document.createElement("span");
-      span.classList.add("timestamp", "username");
+      span.classList.add("timestamp", "username", "unselectable");
       let d = new Date(m.options.timestamp);
       span.textContent = SM.format(d) + " ";
       span.setAttribute("title", LG.format(d));
