@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Admin/IP Tools
-// @version      50
+// @version      51
 // @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -233,15 +233,12 @@ body[noipspls] .tag_key_ip {
           const hammer = document.createElement("i");
           hammer.setAttribute("class", "chat_message_icon icon-hammer");
           msg.ban_elem.appendChild(hammer);
-          msg.ban_elem.setAttribute("class", "username clickable ban");
+          msg.ban_elem.setAttribute("class", "username clickable ban unselectable");
           msg.ban_elem.addEventListener("click", msg.showBanWindow.bind(msg));
           msg.nick_elem.appendChild(msg.ban_elem);
         }
-        if (msg && nick === "Log" && msg.elem) {
+        if (msg && nick === "Log" && msg.elem && msg.elem.textContent.includes("Reports /")) {
           for (const el of msg.elem.children) {
-            if (!el.textContent.startsWith("#")) {
-              continue;
-            }
             let m = /https:\/\/volafile.org\/r\/(.+)$/.exec(el.href);
             if (m) {
               const l = roomqueue.get(m[1]);
