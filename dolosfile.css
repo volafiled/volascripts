@@ -262,16 +262,6 @@ textarea[disabled] {
     color: var(--channel-color);
 }
 
-.chat_message {
-    white-space: nowrap;
-}
-
-.chat_message a[target],
-.chat_message i:not([class]),
-.chat_text {
-    white-space: normal;
-}
-
 a.chat_room {
     text-decoration: underline;
     display: inline-block;
