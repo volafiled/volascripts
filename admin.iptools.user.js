@@ -20,9 +20,7 @@ dry.once("dom", () => {
   const IS_BAN = /^\S+ (?:banned|muted|hellbanned|unbanned|un-muted|timed-in)\b/;
 
   function adjustBanPart(p, users, ips) {
-    const {
-      value
-    } = p;
+    const {value} = p;
     let slash = value.indexOf(" / ");
     if (slash < 0) {
       slash = value.length;
@@ -72,9 +70,7 @@ dry.once("dom", () => {
   console.log(
     "running", GM.info.script.name, GM.info.script.version, dry.version);
 
-  const style = $e("style", {
-    id: "iptools-style"
-  }, `
+  const style = $e("style", {id: "iptools-style"}, `
 body[noipspls] .chat_message_ip,
 body[noipspls] .tag_key_ip {
   display: none;
@@ -119,7 +115,8 @@ body[noipspls] .tag_key_ip {
   const update = () => {
     if (state) {
       document.body.setAttribute("noipspls", "true");
-    } else {
+    }
+    else {
       document.body.removeAttribute("noipspls");
     }
     localStorage.setItem("noipspls", state.toString());
@@ -157,12 +154,14 @@ body[noipspls] .tag_key_ip {
           for (const el of elems) {
             el.textContent = res.name;
           }
-        } catch (ex) {
+        }
+        catch (ex) {
           console.error(ex);
         }
         roomqueue.delete(room);
       }
-    } finally {
+    }
+    finally {
       resolving = false;
     }
   };
@@ -176,7 +175,8 @@ body[noipspls] .tag_key_ip {
           if (message[0].type === "url" && message[0].href === "/reports") {
             if (message[1].value.startsWith(" / BLACKLIST ")) {
               adjustBanPart(message[4], users, ips);
-            } else {
+            }
+            else {
               const [, p] = message;
               const m = p.value.match(/ \((\d+\.\d+\.\d+\.\d+)\)/);
               if (m) {
@@ -184,7 +184,8 @@ body[noipspls] .tag_key_ip {
                 ips.push(m[1]);
               }
             }
-          } else {
+          }
+          else {
             for (const p of message) {
               if (p.type !== "text") {
                 continue;
@@ -207,7 +208,8 @@ body[noipspls] .tag_key_ip {
             data.ip = ips.join(" ip:");
           }
         }
-      } catch (ex) {
+      }
+      catch (ex) {
         console.error(ex);
       }
       const msg = orig(...[nick, message, options, data].concat(args));
@@ -242,15 +244,18 @@ body[noipspls] .tag_key_ip {
               const l = roomqueue.get(m[1]);
               if (!l) {
                 roomqueue.set(m[1], [el]);
-              } else {
+              }
+              else {
                 l.push(el);
               }
             }
           }
         }
-      } catch (ex) {
+      }
+      catch (ex) {
         console.error(ex);
-      } finally {
+      }
+      finally {
         resolve_rooms().catch(console.error);
       }
       return msg;
@@ -337,7 +342,8 @@ body[noipspls] .tag_key_ip {
           options.buttons.splice(idx, 1);
         }
       }
-    } catch (ex) {
+    }
+    catch (ex) {
       console.error("ex", ex);
     }
     return orig(el, options);
@@ -385,14 +391,9 @@ body[noipspls] .tag_key_ip {
 
   _templates.forms.freeformselect = {
     title: "Select files from freeform text",
-    fields: [{
-      type: "textarea",
-      name: "freeform",
-      placeholder: " ",
-      label: "Text",
-      rows: "8",
-      cols: "30"
-    }, ],
+    fields: [
+      {type: "textarea", mname: "freeform", placeholder: " ", label: "Text", rows: "8",cols: "30"},
+    ],
     submit: "Select"
   };
 });
