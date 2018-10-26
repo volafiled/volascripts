@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Admin/IP Tools
-// @version      51
+// @version      52
 // @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -20,7 +20,9 @@ dry.once("dom", () => {
   const IS_BAN = /^\S+ (?:banned|muted|hellbanned|unbanned|un-muted|timed-in)\b/;
 
   function adjustBanPart(p, users, ips) {
-    const {value} = p;
+    const {
+      value
+    } = p;
     let slash = value.indexOf(" / ");
     if (slash < 0) {
       slash = value.length;
@@ -57,10 +59,10 @@ dry.once("dom", () => {
     let rv = document.createElement(tag);
     attrs = attrs || {};
     for (let a in attrs) {
-        rv.setAttribute(a, attrs[a]);
+      rv.setAttribute(a, attrs[a]);
     }
     if (text) {
-        rv.textContent = text;
+      rv.textContent = text;
     }
     return rv;
   }
@@ -70,7 +72,9 @@ dry.once("dom", () => {
   console.log(
     "running", GM.info.script.name, GM.info.script.version, dry.version);
 
-  const style = $e("style", {id: "iptools-style"}, `
+  const style = $e("style", {
+    id: "iptools-style"
+  }, `
 body[noipspls] .chat_message_ip,
 body[noipspls] .tag_key_ip {
   display: none;
@@ -99,7 +103,7 @@ body[noipspls] .tag_key_ip {
 .icon-untick {
   margin: 0 !important;
 }
-.untick-button {
+.untick-button, .tick-button {
   position: relative;
   z-index: 150;
   font-size: 18px;
@@ -115,8 +119,7 @@ body[noipspls] .tag_key_ip {
   const update = () => {
     if (state) {
       document.body.setAttribute("noipspls", "true");
-    }
-    else {
+    } else {
       document.body.removeAttribute("noipspls");
     }
     localStorage.setItem("noipspls", state.toString());
@@ -154,14 +157,12 @@ body[noipspls] .tag_key_ip {
           for (const el of elems) {
             el.textContent = res.name;
           }
-        }
-        catch (ex) {
+        } catch (ex) {
           console.error(ex);
         }
         roomqueue.delete(room);
       }
-    }
-    finally {
+    } finally {
       resolving = false;
     }
   };
@@ -175,8 +176,7 @@ body[noipspls] .tag_key_ip {
           if (message[0].type === "url" && message[0].href === "/reports") {
             if (message[1].value.startsWith(" / BLACKLIST ")) {
               adjustBanPart(message[4], users, ips);
-            }
-            else {
+            } else {
               const [, p] = message;
               const m = p.value.match(/ \((\d+\.\d+\.\d+\.\d+)\)/);
               if (m) {
@@ -184,8 +184,7 @@ body[noipspls] .tag_key_ip {
                 ips.push(m[1]);
               }
             }
-          }
-          else {
+          } else {
             for (const p of message) {
               if (p.type !== "text") {
                 continue;
@@ -208,8 +207,7 @@ body[noipspls] .tag_key_ip {
             data.ip = ips.join(" ip:");
           }
         }
-      }
-      catch (ex) {
+      } catch (ex) {
         console.error(ex);
       }
       const msg = orig(...[nick, message, options, data].concat(args));
@@ -244,18 +242,15 @@ body[noipspls] .tag_key_ip {
               const l = roomqueue.get(m[1]);
               if (!l) {
                 roomqueue.set(m[1], [el]);
-              }
-              else {
+              } else {
                 l.push(el);
               }
             }
           }
         }
-      }
-      catch (ex) {
+      } catch (ex) {
         console.error(ex);
-      }
-      finally {
+      } finally {
         resolve_rooms().catch(console.error);
       }
       return msg;
@@ -289,7 +284,7 @@ body[noipspls] .tag_key_ip {
   function selectFreeform() {
     const form = RoomInstance.extensions.templates.renderForm("forms.freeformselect", {});
     form.on("submit", () => {
-    const items = form.values.freeform;
+      const items = form.values.freeform;
       if (!items) {
         console.error("no items");
       }
@@ -309,6 +304,14 @@ body[noipspls] .tag_key_ip {
           file.dom.controlElement.firstChild.click();
         }
       });
+    });
+  }
+
+  function tickAll() {
+    RoomInstance.extensions.filelist.filelist.forEach(file => {
+      if (!file.dom.fileElement.classList.contains("file_selected")) {
+        file.dom.controlElement.firstChild.click()
+      }
     });
   }
 
@@ -334,8 +337,7 @@ body[noipspls] .tag_key_ip {
           options.buttons.splice(idx, 1);
         }
       }
-    }
-    catch (ex) {
+    } catch (ex) {
       console.error("ex", ex);
     }
     return orig(el, options);
@@ -344,24 +346,35 @@ body[noipspls] .tag_key_ip {
   // fixup ban templates
   for (const b of Object.values(window._templates.bans)) {
     b.lock = b.locked = false;
-     if (b.upload && b.hours <= 24) {
-       b.upload = false;
-     }
+    if (b.upload && b.hours <= 24) {
+      b.upload = false;
+    }
   }
 
   const doet = Symbol("doet");
   const cont = $("#upload_container");
-  const button = $e("label", {
+  const untickButton = $e("label", {
     "for": "untick-button",
     "id": "untick-button",
     "class": "button untick-button",
     "title": "Untick all!"
   });
-  button.appendChild($e("span", {
+  untickButton.appendChild($e("span", {
     "class": "icon-minus"
   }));
-  button.addEventListener("click", () => dry.exts.adminButtons.untickAll(doet));
-  cont.insertBefore(button, cont.firstChild);
+  const tickButton = $e("label", {
+    "for": "tick-button",
+    "id": "tick-button",
+    "class": "button tick-button",
+    "title": "Tick all!"
+  });
+  tickButton.appendChild($e("span", {
+    "class": "icon-plus"
+  }));
+  untickButton.addEventListener("click", () => dry.exts.adminButtons.untickAll(doet));
+  tickButton.addEventListener("click", tickAll);
+  cont.insertBefore(tickButton, cont.firstChild);
+  cont.insertBefore(untickButton, cont.firstChild);
 
   dry.replaceEarly("adminButtons", "untickAll", function(orig, kek) {
     if (kek !== doet) {
@@ -372,9 +385,14 @@ body[noipspls] .tag_key_ip {
 
   _templates.forms.freeformselect = {
     title: "Select files from freeform text",
-    fields: [
-      {type: "textarea", name: "freeform", placeholder: " ", label: "Text", rows: "8", cols:"30"},
-    ],
+    fields: [{
+      type: "textarea",
+      name: "freeform",
+      placeholder: " ",
+      label: "Text",
+      rows: "8",
+      cols: "30"
+    }, ],
     submit: "Select"
   };
 });
