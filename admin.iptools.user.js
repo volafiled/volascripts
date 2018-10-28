@@ -398,7 +398,7 @@ body[noipspls] .tag_key_ip {
   _templates.forms.freeformselect = {
     title: "Select files from freeform text",
     fields: [
-      {type: "textarea", mname: "freeform", placeholder: " ", label: "Text", rows: "8",cols: "30"},
+      {type: "textarea", name: "freeform", placeholder: " ", label: "Text", rows: "8", cols: "30"},
     ],
     submit: "Select"
   };
