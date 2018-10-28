@@ -99,7 +99,7 @@ body[noipspls] .tag_key_ip {
 .icon-untick {
   margin: 0 !important;
 }
-.untick-button, .tick-button {
+.untick-button {
   position: relative;
   z-index: 150;
   font-size: 18px;
@@ -312,14 +312,6 @@ body[noipspls] .tag_key_ip {
     });
   }
 
-  function tickAll() {
-    RoomInstance.extensions.filelist.filelist.forEach(file => {
-      if (!file.dom.fileElement.classList.contains("file_selected")) {
-        file.dom.controlElement.firstChild.click()
-      }
-    });
-  }
-
   dry.replaceEarly("ui", "showContextMenu", function(orig, el, options) {
     try {
       if (options && options.dedupe === "admin_contextmenu" && dry.exts.user.info.admin) {
@@ -357,30 +349,44 @@ body[noipspls] .tag_key_ip {
     }
   }
 
+  function tickAll() {
+    RoomInstance.extensions.filelist.filelist.forEach(file => {
+      if (!file.dom.fileElement.classList.contains("file_selected")) {
+        file.dom.controlElement.firstChild.click()
+      }
+    });
+  }
+
   const doet = Symbol("doet");
   const cont = $("#upload_container");
-  const untickButton = $e("label", {
+  const button = $e("label", {
     "for": "untick-button",
     "id": "untick-button",
     "class": "button untick-button",
     "title": "Untick all!"
   });
-  untickButton.appendChild($e("span", {
+  const unticked = $e("span", {
     "class": "icon-minus"
-  }));
-  const tickButton = $e("label", {
-    "for": "tick-button",
-    "id": "tick-button",
-    "class": "button tick-button",
-    "title": "Tick all!"
   });
-  tickButton.appendChild($e("span", {
+  const ticked = $e("span", {
     "class": "icon-plus"
-  }));
-  untickButton.addEventListener("click", () => dry.exts.adminButtons.untickAll(doet));
-  tickButton.addEventListener("click", tickAll);
-  cont.insertBefore(tickButton, cont.firstChild);
-  cont.insertBefore(untickButton, cont.firstChild);
+  });
+  button.appendChild(unticked);
+  let tickedtest = false;
+  button.addEventListener("click", () => {
+    if (tickedtest) {
+      tickAll();
+      button.replaceChild(unticked, ticked);
+      button.title = "Untick all!";
+    }
+    else {
+      dry.exts.adminButtons.untickAll(doet)
+      button.replaceChild(ticked, unticked);
+      button.title = "Tick all!";
+    }
+    tickedtest = !tickedtest;
+  });
+  cont.insertBefore(button, cont.firstChild);
 
   dry.replaceEarly("adminButtons", "untickAll", function(orig, kek) {
     if (kek !== doet) {
