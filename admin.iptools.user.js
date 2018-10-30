@@ -351,9 +351,7 @@ body[noipspls] .tag_key_ip {
 
   function tickAll() {
     RoomInstance.extensions.filelist.filelist.forEach(file => {
-      if (!file.dom.fileElement.classList.contains("file_selected")) {
-        file.dom.controlElement.firstChild.click()
-      }
+      file.setData("checked", true);
     });
   }
 
