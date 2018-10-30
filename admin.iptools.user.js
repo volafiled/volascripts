@@ -99,7 +99,7 @@ body[noipspls] .tag_key_ip {
 .icon-untick {
   margin: 0 !important;
 }
-.untick-button {
+.untick-button, .tick-button {
   position: relative;
   z-index: 150;
   font-size: 18px;
@@ -349,19 +349,36 @@ body[noipspls] .tag_key_ip {
      }
   }
 
+  function tickAll() {
+    RoomInstance.extensions.filelist.filelist.forEach(file => {
+      file.setData("checked", true);
+    });
+  }
+
   const doet = Symbol("doet");
   const cont = $("#upload_container");
-  const button = $e("label", {
+  const untickButton = $e("label", {
     "for": "untick-button",
     "id": "untick-button",
     "class": "button untick-button",
     "title": "Untick all!"
   });
-  button.appendChild($e("span", {
+  untickButton.appendChild($e("span", {
     "class": "icon-minus"
   }));
-  button.addEventListener("click", () => dry.exts.adminButtons.untickAll(doet));
-  cont.insertBefore(button, cont.firstChild);
+  const tickButton = $e("label", {
+    "for": "tick-button",
+    "id": "tick-button",
+    "class": "button tick-button",
+    "title": "Tick all!"
+  });
+  tickButton.appendChild($e("span", {
+    "class": "icon-plus"
+  }));
+  untickButton.addEventListener("click", () => dry.exts.adminButtons.untickAll(doet));
+  tickButton.addEventListener("click", tickAll);
+  cont.insertBefore(untickButton, cont.firstChild);
+  cont.insertBefore(tickButton, cont.firstChild);
 
   dry.replaceEarly("adminButtons", "untickAll", function(orig, kek) {
     if (kek !== doet) {
@@ -373,7 +390,7 @@ body[noipspls] .tag_key_ip {
   _templates.forms.freeformselect = {
     title: "Select files from freeform text",
     fields: [
-      {type: "textarea", name: "freeform", placeholder: " ", label: "Text", rows: "8", cols:"30"},
+      {type: "textarea", name: "freeform", placeholder: " ", label: "Text", rows: "8", cols: "30"},
     ],
     submit: "Select"
   };
