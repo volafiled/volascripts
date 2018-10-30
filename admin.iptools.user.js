@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Admin/IP Tools
-// @version      52
+// @version      51
 // @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -57,10 +57,10 @@ dry.once("dom", () => {
     let rv = document.createElement(tag);
     attrs = attrs || {};
     for (let a in attrs) {
-      rv.setAttribute(a, attrs[a]);
+        rv.setAttribute(a, attrs[a]);
     }
     if (text) {
-      rv.textContent = text;
+        rv.textContent = text;
     }
     return rv;
   }
@@ -99,7 +99,7 @@ body[noipspls] .tag_key_ip {
 .icon-untick {
   margin: 0 !important;
 }
-.untick-button {
+.untick-button, .tick-button {
   position: relative;
   z-index: 150;
   font-size: 18px;
@@ -289,7 +289,7 @@ body[noipspls] .tag_key_ip {
   function selectFreeform() {
     const form = RoomInstance.extensions.templates.renderForm("forms.freeformselect", {});
     form.on("submit", () => {
-      const items = form.values.freeform;
+    const items = form.values.freeform;
       if (!items) {
         console.error("no items");
       }
@@ -344,9 +344,9 @@ body[noipspls] .tag_key_ip {
   // fixup ban templates
   for (const b of Object.values(window._templates.bans)) {
     b.lock = b.locked = false;
-    if (b.upload && b.hours <= 24) {
-      b.upload = false;
-    }
+     if (b.upload && b.hours <= 24) {
+       b.upload = false;
+     }
   }
 
   function tickAll() {
@@ -359,34 +359,28 @@ body[noipspls] .tag_key_ip {
 
   const doet = Symbol("doet");
   const cont = $("#upload_container");
-  const button = $e("label", {
+  const untickButton = $e("label", {
     "for": "untick-button",
     "id": "untick-button",
     "class": "button untick-button",
     "title": "Untick all!"
   });
-  const unticked = $e("span", {
+  untickButton.appendChild($e("span", {
     "class": "icon-minus"
+  }));
+  const tickButton = $e("label", {
+    "for": "tick-button",
+    "id": "tick-button",
+    "class": "button tick-button",
+    "title": "Tick all!"
   });
-  const ticked = $e("span", {
+  tickButton.appendChild($e("span", {
     "class": "icon-plus"
-  });
-  button.appendChild(unticked);
-  let tickedtest = false;
-  button.addEventListener("click", () => {
-    if (tickedtest) {
-      tickAll();
-      button.replaceChild(unticked, ticked);
-      button.title = "Untick all!";
-    }
-    else {
-      dry.exts.adminButtons.untickAll(doet)
-      button.replaceChild(ticked, unticked);
-      button.title = "Tick all!";
-    }
-    tickedtest = !tickedtest;
-  });
-  cont.insertBefore(button, cont.firstChild);
+  }));
+  untickButton.addEventListener("click", () => dry.exts.adminButtons.untickAll(doet));
+  tickButton.addEventListener("click", tickAll);
+  cont.insertBefore(untickButton, cont.firstChild);
+  cont.insertBefore(tickButton, cont.firstChild);
 
   dry.replaceEarly("adminButtons", "untickAll", function(orig, kek) {
     if (kek !== doet) {
