@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Freaky Names
 // @namespace    http://jew.dance/
-// @version      0.11
+// @version      0.12
 // @description  ...and shit
 // @author       RealDolos
 // @match        https://volafile.org/r/*
@@ -19,7 +19,7 @@
         "getddosed": "blue",
         "^thejidf$|^jewmobile$|^mrshlomo$": {color: "pink", content:'✡'},
         "^starsheep": "yellow",
-        "^dongmaster$|^doc$": "#7aa2ff",
+        "^whitepride$": "#7aa2ff",
         "31337h4x0r|realdolos|vagfacetrm|robocuck|(?:Red|Dong|Immor|lg188)dolos": "white",
         "^kreg$": "hotpink",
         "^robocop$": {color: "dodgerblue", content: '🤖'},
