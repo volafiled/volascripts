@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         Mod EVERYTHING better, because reasons!
 // @namespace    http://not.jew.dance/
-// @version      0.10
+// @version      0.20
 // @description  try to take over the world!
 // @author       You
-// @match        https://volafile.io/r/*
+// @match        https://volafile.org/r/*
+// @require      https://cdn.jsdelivr.net/gh/volafiled/volascripts/dry.js
 // @grant        none
 // @run-at       document-start
 // ==/UserScript==
@@ -47,8 +48,7 @@
 
     let owner = false;
 
-    addEventListener("DOMContentLoaded", function domload(e) {
-        removeEventListener("DOMContentLoaded", domload, true);
+    dry.once("dom", () => {
 
         const chatp = Room.prototype._extensions.chat.prototype;
 
@@ -56,8 +56,7 @@
         chatp.showMessage = function(nick, message, options, ...args) {
             try {
                 if (args.length && args[0] && args[0].id && owner && rekt.has(nick.toLowerCase().trim())) {
-                    const exts = Room.prototype._extensions.connection.prototype.room.extensions;
-                    exts.connection.call("timeoutChat", args[0].id, nick);
+                    dry.exts.connection.call("timeoutChat", args[0].id, nick);
                 }
             }
             catch (ex) {
@@ -65,44 +64,28 @@
             }
             return showMessage.apply(this, [nick, message, options].concat(args));
         };
-
-        const commands = {
+        new class extends dry.Commands {
             rekt(user) {
                 console.log("rekting user", user);
                 rekt.add(user.toLowerCase().trim());
                 saveRekts();
                 return true;
-            },
+            }
             unrekt(user) {
                 console.log("unrekting user", user);
                 rekt.delete(user.toLowerCase().trim());
                 saveRekts();
                 return true;
             }
-        };
+        }();
+    });
 
-        // hook the original command processor
-        const onCommand = chatp.onCommand;
-        chatp.onCommand = function(command, e, ...args) {
-            let fn = commands[command];
-            if (fn && fn.call(commands, e, args)) {
-                return;
-            }
-            args.unshift(e);
-            args.unshift(command);
-            return onCommand.apply(this, args);
-        };
-    }, true);
-
-    addEventListener("load", function load(e) {
-        removeEventListener("load", load, true);
-        // yeah nasty!
-        const exts = Room.prototype._extensions.connection.prototype.room.extensions;
+  dry.once("load", () => {
 
         let last_file = null;
         const find_file = function(file) {
             let id = file.dataset.id;
-            let fl = exts.filelistManager.filelist.filelist;
+            let fl = dry.exts.filelistManager.filelist.filelist;
             for (let i = 0; i < fl.length; ++i) {
                 if (fl[i].id === id) {
                     return { idx: i, item: fl[i] };
@@ -133,7 +116,7 @@
             if (cf > lf) {
                 [lf, cf] = [cf, lf];
             }
-            let files = exts.filelistManager.filelist.filelist.slice(cf, lf);
+            let files = dry.exts.filelistManager.filelist.filelist.slice(cf, lf);
             let checked = file.checked;
             files.forEach(el => {
                 el.dom.dolosElement.checked = checked;
@@ -149,8 +132,8 @@
                     return;
                 }
                 if (file.tags && file.tags.user && rekt.has(file.tags.user.toLowerCase().trim())) {
-                    exts.connection.call("timeoutFile", file.id, file.tags.user);
-                    exts.connection.call("deleteFiles", [file.id]);
+                    dry.exts.connection.call("timeoutFile", file.id, file.tags.user);
+                    dry.exts.connection.call("deleteFiles", [file.id]);
                 }
                 var existing = file.dom.dolosElement;
                 if (existing) {
@@ -163,6 +146,8 @@
                 });
                 chk.dataset.id = file.id;
                 chk.style.display = "inline";
+                chk.style.outline = 0;
+                chk.style.marginRight = "0.5em";
                 let c = file.dom.controlElement;
                 c.insertBefore(chk, c.firstChild);
                 chk.addEventListener("click", file_click, true);
@@ -176,8 +161,8 @@
             }
         };
 
-        exts.admin.on("owner", function() {
-            if ((!exts.admin.isOwner && !exts.admin.isOwner) || owner) {
+        dry.exts.user.on("info_owner", (isOwner) => {
+            if (!isOwner) {
                 return;
             }
             owner = true;
@@ -201,20 +186,20 @@
                         this.textContent = `Select all files from user '${user}'`;
                     }.bind(mi));
                     mi.addEventListener("click", function() {
-                        exts.filelistManager.filelist.filelist.forEach(
+                        dry.exts.filelistManager.filelist.filelist.forEach(
                             e => e.dom.dolosElement.checked = e.tags.user === user);
                     });
 
                     mi = $e("menuitem", null, "Select all");
                     mi.addEventListener("click", function() {
-                        exts.filelistManager.filelist.filelist.forEach(
+                        dry.exts.filelistManager.filelist.filelist.forEach(
                             e => e.dom.dolosElement.checked = true);
                     });
                     el.appendChild(mi);
 
                     mi = $e("menuitem", null, "Select none");
                     mi.addEventListener("click", function() {
-                        exts.filelistManager.filelist.filelist.forEach(
+                        dry.exts.filelistManager.filelist.filelist.forEach(
                             e => e.dom.dolosElement.checked = false);
                     });
                     el.appendChild(mi);
@@ -231,7 +216,7 @@
                     mi = $e("menuitem", null, "Select dupes");
                     mi.addEventListener("click", function() {
                         let known = new Set();
-                        exts.filelistManager.filelist.filelist.forEach(e => {
+                        dry.exts.filelistManager.filelist.filelist.forEach(e => {
                             let k = `${e.size}/${e.name}`;
                             let existing = known.has(k);
                             if (known.has(k)) {
@@ -252,9 +237,9 @@
                     console.error(ex);
                 }
             })();
-            exts.filelistManager.on("fileAdded", prepare_file);
-            exts.filelistManager.on("fileUpdated", prepare_file);
-            exts.filelistManager.filelist.filelist.forEach(prepare_file);
+            dry.exts.filelistManager.on("fileAdded", prepare_file);
+            dry.exts.filelistManager.on("fileUpdated", prepare_file);
+            dry.exts.filelistManager.filelist.filelist.forEach(prepare_file);
 
             let cont = $("#upload_container");
             (function() {
@@ -262,7 +247,8 @@
                     let el = $e("label", {
                         "for": "dolos_delete_input",
                         "id": "dolos_deleteButton",
-                        "class": "button"
+                        "class": "button",
+                        "style": "margin-right: 0.5em",
                     });
                     el.appendChild($e("span", {
                         "class": "icon-trash"
@@ -273,7 +259,7 @@
                     cont.insertBefore(el, cont.firstChild);
                     el.addEventListener("click", function() {
                         let ids = selected();
-                        exts.connection.call("deleteFiles", ids);
+                        dry.exts.connection.call("deleteFiles", ids);
                     });
                 }
                 catch (ex) {
@@ -281,5 +267,5 @@
                 }
             })();
         });
-    }, true);
+  });
 })();
