@@ -9,6 +9,7 @@
 // @grant        none
 // @run-at       document-start
 // ==/UserScript==
+/* globals dry */
 
 (function() {
   'use strict';
@@ -131,7 +132,7 @@
           dry.exts.connection.call("timeoutFile", file.id, file.tags.user);
           dry.exts.connection.call("deleteFiles", [file.id]);
         }
-        var existing = file.dom.dolosElement;
+        let existing = file.dom.dolosElement;
         if (existing) {
           existing.dataset.id = file.id;
           return;
@@ -214,7 +215,6 @@
             let known = new Set();
             dry.exts.filelistManager.filelist.filelist.forEach(e => {
               let k = `${e.size}/${e.name}`;
-              let existing = known.has(k);
               if (known.has(k)) {
                 e.dom.dolosElement.checked = true;
                 console.log("marked " + k + " for doom");
