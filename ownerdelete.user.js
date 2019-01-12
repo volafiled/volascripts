@@ -49,39 +49,35 @@
     let owner = false;
 
     dry.once("dom", () => {
-
-        const chatp = Room.prototype._extensions.chat.prototype;
-
-        const showMessage = chatp.showMessage;
-        chatp.showMessage = function(nick, message, options, ...args) {
+        new class extends dry.MessageFilter {
+          showMessage(nick, message, options, ...args) {
             try {
-                if (args.length && args[0] && args[0].id && owner && rekt.has(nick.toLowerCase().trim())) {
-                    dry.exts.connection.call("timeoutChat", args[0].id, nick);
-                }
+              if (args.length && args[0] && args[0].id && owner && rekt.has(nick.toLowerCase().trim())) {
+                dry.exts.connection.call("timeoutChat", args[0].id, nick);
+              }
             }
             catch (ex) {
-                console.error(ex);
+              console.error(ex);
             }
-            return showMessage.apply(this, [nick, message, options].concat(args));
-        };
+          }
+        }();
         new class extends dry.Commands {
-            rekt(user) {
-                console.log("rekting user", user);
-                rekt.add(user.toLowerCase().trim());
-                saveRekts();
-                return true;
-            }
-            unrekt(user) {
-                console.log("unrekting user", user);
-                rekt.delete(user.toLowerCase().trim());
-                saveRekts();
-                return true;
-            }
+          rekt(user) {
+              console.log("rekting user", user);
+              rekt.add(user.toLowerCase().trim());
+              saveRekts();
+              return true;
+          }
+          unrekt(user) {
+              console.log("unrekting user", user);
+              rekt.delete(user.toLowerCase().trim());
+              saveRekts();
+              return true;
+          }
         }();
     });
 
   dry.once("load", () => {
-
         let last_file = null;
         const find_file = function(file) {
             let id = file.dataset.id;
