@@ -6,11 +6,11 @@
 // @author      topkuk productions
 // @match       https://volafile.org/r/*
 // @require     https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
-// @require     https://cdn.rawgit.com/RealDolos/volascripts/1dd689f72763c0e59f567fdf93865837e35964d6/dry.js
-// @require     https://cdn.rawgit.com/RealDolos/node-parrot/acb622d5d9af34f0de648385e6ab4d2411373037/parrot/finally.js
-// @require     https://cdn.rawgit.com/RealDolos/node-parrot/acb622d5d9af34f0de648385e6ab4d2411373037/parrot/pool.js
+// @require     https://cdn.jsdelivr.net/gh/volafiled/volascripts@a9c0424e5498deea9fd437c15b2137c3bec07c61/dry.min.js
+// @require     https://cdn.jsdelivr.net/gh/volafiled/node-parrot@acb622d5d9af34f0de648385e6ab4d2411373037/parrot/finally.min.js
+// @require     https://cdn.jsdelivr.net/gh/volafiled/node-parrot@acb622d5d9af34f0de648385e6ab4d2411373037/parrot/pool.min.js
 // @grant       none
-// @version     4
+// @version     5
 // ==/UserScript==
 /* globals GM, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
@@ -105,7 +105,6 @@ const SHEET = `
 
 const ICON_ERROR = "https://cdn.rawgit.com/RealDolos/assets/5cd4f6f4c349e32e778da55a41928c0309ac4fd4/error.svg";
 const ICON_LOADING = "https://cdn.rawgit.com/RealDolos/assets/5cd4f6f4c349e32e778da55a41928c0309ac4fd4/waiting.svg";
-
 const apool = new class AnimationPool {
   constructor() {
     this.items = [];
@@ -173,47 +172,47 @@ let file_list;
 let thumb_list;
 
 (function() {
-const sheet = $e("style", {id: "volanail-sheet"}, SHEET);
-document.body.appendChild(sheet);
+  const sheet = $e("style", {id: "volanail-sheet"}, SHEET);
+  document.body.appendChild(sheet);
 
-const cont = $("#upload_container");
-button = $e("label", {
-  for: "volanail-button",
-  id: "volanail-button",
-  class: "button volanail-button"
-});
-button.appendChild($e("span", {
-  class: "icon-vnthumb"
-}));
-button.appendChild($e("span", {
-  class: "on_small_header"
-}/*, Thumbnail"*/));
-cont.insertBefore(button, cont.firstChild);
-file_list = $("#file_list");
-thumb_list = $e("div", {id: "volanail-list"});
-thumb_list.style.display = "none";
-file_list.parentElement.insertBefore(thumb_list, file_list);
-
-const files_frame = $("#files_frame");
-let oldCount = 0;
-const rule = Array.from(sheet.sheet.cssRules).find(
-  e => e && e.selectorText === ".volanail-thumb" ? e : null);
-const update_columns = () => {
-  apool.schedule(null, () => {
-    const columnCount = Math.max(2, Math.floor(files_frame.clientWidth / 220));
-    if (oldCount === columnCount) {
-      return;
-    }
-    oldCount = columnCount;
-    rule.style.width = `calc(100% / ${columnCount} - 12px - 1ex)`;
+  const cont = $("#upload_container");
+  button = $e("label", {
+    for: "volanail-button",
+    id: "volanail-button",
+    class: "button volanail-button"
   });
-};
+  button.appendChild($e("span", {
+    class: "icon-vnthumb"
+  }));
+  button.appendChild($e("span", {
+    class: "on_small_header"
+  }/*, Thumbnail"*/));
+  cont.insertBefore(button, cont.firstChild);
+  file_list = $("#file_list");
+  thumb_list = $e("div", {id: "volanail-list"});
+  thumb_list.style.display = "none";
+  file_list.parentElement.insertBefore(thumb_list, file_list);
 
-// Easier to observe mutations than hook into lain codes
-new MutationObserver(() => update_columns()).observe(files_frame, {
-  attributes: true
-});
-update_columns();
+  const files_frame = $("#files_frame");
+  let oldCount = 0;
+  const rule = Array.from(sheet.sheet.cssRules).find(
+    e => e && e.selectorText === ".volanail-thumb" ? e : null);
+  const update_columns = () => {
+    apool.schedule(null, () => {
+      const columnCount = Math.max(2, Math.floor(files_frame.clientWidth / 220));
+      if (oldCount === columnCount) {
+        return;
+      }
+      oldCount = columnCount;
+      rule.style.width = `calc(100% / ${columnCount} - 12px - 1ex)`;
+    });
+  };
+
+  // Easier to observe mutations than hook into lain codes
+  new MutationObserver(() => update_columns()).observe(files_frame, {
+    attributes: true
+  });
+  update_columns();
 })();
 
 const force_update = () => {
@@ -558,6 +557,7 @@ dry.once("load", () => {
         else if (!f.visible && parent) {
           parent.removeChild(el);
         }
+        f.emit("thumb_added");
       });
       loader.refresh();
     }
