@@ -25,10 +25,8 @@ dry.once("dom", () => {
   }();
   new class extends dry.MessageFilter {
     showMessage(orig, nick, message, options) {
-      if (("Log" === nick || "Network" === nick) && tabbind === config.room_id) {
-        if (!!dry.exts.user.info.admin) {
-          dry.exts.connection.call("command", dry.exts.user.info.nick, "reports", "")
-        }
+      if ("Log" === nick && tabbind === config.room_id && !options.report) {
+        dry.exts.connection.call("command", dry.exts.user.info.nick, "reports", "")
       }
       return;
     }
