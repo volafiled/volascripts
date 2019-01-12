@@ -157,8 +157,8 @@
       }
     };
 
-    dry.exts.user.on("info_owner", (isOwner) => {
-      if (!isOwner) {
+    function createButtons(isOwnerOrAdmin) {
+      if (!isOwnerOrAdmin) {
         return;
       }
       owner = true;
@@ -166,8 +166,8 @@
       (function() {
         try {
           let el = $e("menu", {
-              id: "dolos_cuckmenu",
-              type: "context"
+            id: "dolos_cuckmenu",
+            type: "context"
           });
           let mi = $e("menuitem", null, "Select all files from this user");
           el.appendChild(mi);
@@ -182,8 +182,8 @@
             this.textContent = `Select all files from user '${user}'`;
           }.bind(mi));
           mi.addEventListener("click", function() {
-              dry.exts.filelistManager.filelist.filelist.forEach(
-                  e => e.dom.dolosElement.checked = e.tags.user === user);
+            dry.exts.filelistManager.filelist.filelist.forEach(
+              e => e.dom.dolosElement.checked = e.tags.user === user);
           });
 
           mi = $e("menuitem", null, "Select all");
@@ -202,7 +202,7 @@
 
           mi = $e("menuitem", null, "Invert selection");
           mi.addEventListener("click", function() {
-            exts.filelistManager.filelist.filelist.forEach(e => {
+            dry.exts.filelistManager.filelist.filelist.forEach(e => {
               e = e.dom.dolosElement;
               e.checked = !e.checked;
             });
@@ -262,6 +262,8 @@
           console.error(ex);
         }
       })();
-    });
+    }
+    dry.exts.user.on("info_owner", createButtons);
+    dry.exts.user.on("info_admin", createButtons);
   });
 })();
