@@ -10,7 +10,7 @@
 // @grant        none
 // @run-at       document-start
 // ==/UserScript==
-/* globals dry */
+/* globals dry GM config */
 dry.once("dom", () => {
   'use strict';
   console.log("running", GM.info.script.name, GM.info.script.version, dry.version);
@@ -20,15 +20,14 @@ dry.once("dom", () => {
     bindreports() {
       localStorage.setItem(bindtab, config.room_id);
       dry.appendMessage("Binder", "Reports are bound to this tab now");
-      dry.exts.connection.call("command", dry.exts.user.info.nick, "reports", "")
+      dry.exts.connection.call("command", dry.exts.user.info.nick, "reports", "");
     }
   }();
   new class extends dry.MessageFilter {
     showMessage(orig, nick, message, options) {
-      if ("Log" === nick && tabbind === config.room_id && !options.report) {
-        dry.exts.connection.call("command", dry.exts.user.info.nick, "reports", "")
+      if (tabbind === config.room_id && !options.report && nick === "Log") {
+        dry.exts.connection.call("command", dry.exts.user.info.nick, "reports", "");
       }
-      return;
     }
   }();
 });
