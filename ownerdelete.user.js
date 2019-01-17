@@ -10,7 +10,6 @@
 // @run-at       document-start
 // ==/UserScript==
 /* globals dry */
-
 (function() {
   'use strict';
   function selected() {
@@ -158,8 +157,8 @@
       }
     };
 
-    function createButtons(isOwnerOrAdmin) {
-      if (!isOwnerOrAdmin) {
+    function createButtons(isOwnerOrAdminOrJanitor) {
+      if (owner || !isOwnerOrAdminOrJanitor) {
         return;
       }
       owner = true;
@@ -265,5 +264,6 @@
     }
     dry.exts.user.on("info_owner", createButtons);
     dry.exts.user.on("info_admin", createButtons);
+    dry.exts.user.on("info_janitor", createButtons);
   });
 })();
