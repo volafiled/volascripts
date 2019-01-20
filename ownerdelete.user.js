@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mod EVERYTHING better, because reasons!
 // @namespace    http://not.jew.dance/
-// @version      0.20
+// @version      0.21
 // @description  try to take over the world!
 // @author       You
 // @match        https://volafile.org/r/*
@@ -49,32 +49,57 @@
   let owner = false;
 
   dry.once("dom", () => {
-      new class extends dry.MessageFilter {
-        showMessage(nick, message, options, ...args) {
-          try {
-            if (args.length && args[0] && args[0].id && owner && rekt.has(nick.toLowerCase().trim())) {
-              dry.exts.connection.call("timeoutChat", args[0].id, nick);
-            }
-          }
-          catch (ex) {
-            console.error(ex);
+    new class extends dry.MessageFilter {
+      showMessage(nick, message, options, ...args) {
+        try {
+          if (args.length && args[0] && args[0].id && owner && rekt.has(nick.toLowerCase().trim())) {
+            dry.exts.connection.call("timeoutChat", args[0].id, nick);
           }
         }
-      }();
-      new class extends dry.Commands {
-        rekt(user) {
-          console.log("rekting user", user);
-          rekt.add(user.toLowerCase().trim());
-          saveRekts();
-          return true;
+        catch (ex) {
+          console.error(ex);
         }
-        unrekt(user) {
-          console.log("unrekting user", user);
-          rekt.delete(user.toLowerCase().trim());
-          saveRekts();
-          return true;
-        }
-      }();
+      }
+    }();
+    new class extends dry.Commands {
+      rekt(user) {
+        console.log("rekting user", user);
+        rekt.add(user.toLowerCase().trim());
+        saveRekts();
+        return true;
+      }
+      unrekt(user) {
+        console.log("unrekting user", user);
+        rekt.delete(user.toLowerCase().trim());
+        saveRekts();
+        return true;
+      }
+    }();
+    setTimeout(function() {
+      let cont = $("#upload_container");
+      try {
+        let el = $e("label", {
+          "for": "dolos_delete_input",
+          "id": "dolos_deleteButton",
+          "class": "button",
+          "style": "margin-right: 0.5em",
+        });
+        el.appendChild($e("span", {
+          "class": "icon-trash"
+        }));
+        el.appendChild($e("span", {
+          "class": "on_small_header"
+        }, "Delete"));
+        cont.insertBefore(el, cont.firstChild);
+        el.addEventListener("click", function() {
+          let ids = selected();
+          dry.exts.connection.call("deleteFiles", ids);
+        });
+      }
+      catch (ex) {
+        console.error(ex);
+      }
+    }, 1000);
   });
 
   dry.once("load", () => {
@@ -96,7 +121,7 @@
         e.preventDefault();
         // hack to work around prevent default here
         setTimeout(() => {
-            file.checked = !file.checked;
+          file.checked = !file.checked;
         });
         last_file = file;
         return;
@@ -115,7 +140,7 @@
       let files = dry.exts.filelistManager.filelist.filelist.slice(cf, lf);
       let checked = file.checked;
       files.forEach(el => {
-          el.dom.dolosElement.checked = checked;
+        el.dom.dolosElement.checked = checked;
       });
       e.stopPropagation();
       e.preventDefault();
@@ -227,7 +252,7 @@
           el.appendChild(mi);
 
           document.body.appendChild(el);
-          }
+        }
         catch (ex) {
           console.error(ex);
         }
@@ -236,31 +261,6 @@
       dry.exts.filelistManager.on("fileUpdated", prepare_file);
       dry.exts.filelistManager.filelist.filelist.forEach(prepare_file);
 
-      let cont = $("#upload_container");
-      (function() {
-        try {
-          let el = $e("label", {
-            "for": "dolos_delete_input",
-            "id": "dolos_deleteButton",
-            "class": "button",
-            "style": "margin-right: 0.5em",
-          });
-          el.appendChild($e("span", {
-            "class": "icon-trash"
-          }));
-          el.appendChild($e("span", {
-            "class": "on_small_header"
-          }, "Delete"));
-          cont.insertBefore(el, cont.firstChild);
-          el.addEventListener("click", function() {
-            let ids = selected();
-            dry.exts.connection.call("deleteFiles", ids);
-          });
-        }
-        catch (ex) {
-          console.error(ex);
-        }
-      })();
     }
     dry.exts.user.on("info_owner", createButtons);
     dry.exts.user.on("info_admin", createButtons);
