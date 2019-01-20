@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mod EVERYTHING better, because reasons!
 // @namespace    http://not.jew.dance/
-// @version      0.40
+// @version      0.50
 // @description  try to take over the world!
 // @author       You
 // @match        https://volafile.org/r/*
@@ -149,14 +149,19 @@
         if (!file.id) {
           return;
         }
-        if (file.tags && file.tags.user && rekt.has(file.tags.user.toLowerCase().trim())) {
-          dry.exts.connection.call("timeoutFile", file.id, file.tags.user);
+        if (file.tags && (file.tags.user || file.tags.nick) &&
+          rekt.has((file.tags.user || file.tags.nick).toLowerCase().trim())) {
+          dry.exts.connection.call("timeoutFile", file.id, file.tags.user || file.tags.nick);
           dry.exts.connection.call("deleteFiles", [file.id]);
         }
-        if (file.dom.controlElement.dolosElement) {
+        let c = file.dom.controlElement;
+        if (c.dolosElement) {
           return;
         }
-        let c = file.dom.controlElement;
+        if (file.tags.nick) {
+          const tags = Object.assign(file.tags, {cuck: "Whitename"});
+          file.dom.setTags(tags);
+        }
         c.addEventListener("click", file_click, true);
         let fe = file.dom.fileElement;
         fe.setAttribute("contextmenu", "dolos_cuckmenu");
@@ -185,12 +190,15 @@
           let fl = $("#file_list");
           fl.addEventListener("contextmenu", function(e) {
             let file = e.target.parentElement.firstChild.dolosElement;
-            user = file.tags.user;
+            if (!file) {
+              return;
+            }
+            user = file.tags.user || file.tags.nick;
             this.textContent = `Select all files from user '${user}'`;
           }.bind(mi));
           mi.addEventListener("click", function() {
             dry.exts.filelistManager.filelist.filelist.forEach(
-              e => e.setData("checked", e.tags.user === user));
+              e => e.setData("checked", (e.tags.user || e.tags.nick) === user));
           });
 
           mi = $e("menuitem", null, "Select all");
