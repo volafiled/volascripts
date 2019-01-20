@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mod EVERYTHING better, because reasons!
 // @namespace    http://not.jew.dance/
-// @version      0.21
+// @version      0.40
 // @description  try to take over the world!
 // @author       You
 // @match        https://volafile.org/r/*
@@ -13,7 +13,9 @@
 (function() {
   'use strict';
   function selected() {
-    return Array.from($$(".dolos-says-cuck")).filter(e => e.checked).map(e => e.dataset.id);
+    return Array.from(
+      dry.exts.filelistManager.filelist.filelist.filter(e => e.getData("checked")).map(e => e.id)
+    );
   }
 
   function $e(tag, attrs, text) {
@@ -29,7 +31,6 @@
   }
 
   const $ = document.querySelector.bind(document);
-  const $$ = document.querySelectorAll.bind(document);
 
   const loadRekts = () => {
     let rv = localStorage.getItem("rekted");
@@ -105,7 +106,7 @@
   dry.once("load", () => {
     let last_file = null;
     const find_file = function(file) {
-      let id = file.dataset.id;
+      let id = file.id;
       let fl = dry.exts.filelistManager.filelist.filelist;
       for (let i = 0; i < fl.length; ++i) {
         if (fl[i].id === id) {
@@ -115,14 +116,11 @@
       return null;
     };
     const file_click = function(e) {
-      let file = e.target;
+      let file = e.target.parentNode.dolosElement;
+      e.stopPropagation();
+      e.preventDefault();
       if (!e.shiftKey) {
-        e.stopPropagation();
-        e.preventDefault();
-        // hack to work around prevent default here
-        setTimeout(() => {
-          file.checked = !file.checked;
-        });
+        file.setData("checked", !file.getData("checked"));
         last_file = file;
         return;
       }
@@ -138,13 +136,12 @@
         [lf, cf] = [cf, lf];
       }
       let files = dry.exts.filelistManager.filelist.filelist.slice(cf, lf);
-      let checked = file.checked;
+      let checked = file.getData("checked");
       files.forEach(el => {
-        el.dom.dolosElement.checked = checked;
+        el.setData("checked", !el.getData("checked"));
       });
-      e.stopPropagation();
-      e.preventDefault();
-      setTimeout(() => file.checked = last_file.checked = checked, 0);
+      file.setData("checked", !checked);
+      last_file.setData("checked", !checked);
       return false;
     };
     const prepare_file = function(file) {
@@ -156,26 +153,14 @@
           dry.exts.connection.call("timeoutFile", file.id, file.tags.user);
           dry.exts.connection.call("deleteFiles", [file.id]);
         }
-        let existing = file.dom.dolosElement;
-        if (existing) {
-          existing.dataset.id = file.id;
+        if (file.dom.controlElement.dolosElement) {
           return;
         }
-        let chk = $e("input", {
-          type: "checkbox",
-          class: "dolos-says-cuck"
-        });
-        chk.dataset.id = file.id;
-        chk.style.display = "inline";
-        chk.style.outline = 0;
-        chk.style.marginRight = "0.5em";
         let c = file.dom.controlElement;
-        c.insertBefore(chk, c.firstChild);
-        chk.addEventListener("click", file_click, true);
+        c.addEventListener("click", file_click, true);
         let fe = file.dom.fileElement;
         fe.setAttribute("contextmenu", "dolos_cuckmenu");
-        fe.dataset.dolosId = file.id;
-        file.dom.dolosElement = chk;
+        c.dolosElement = file;
       }
       catch (ex) {
         console.error(ex);
@@ -199,37 +184,33 @@
           let user = null;
           let fl = $("#file_list");
           fl.addEventListener("contextmenu", function(e) {
-            let node = e.target;
-            while (!node.dataset.dolosId) {
-              node = node.parentElement;
-            }
-            user = node.querySelector('.tag_key_user').textContent.trim();
+            let file = e.target.parentElement.firstChild.dolosElement;
+            user = file.tags.user;
             this.textContent = `Select all files from user '${user}'`;
           }.bind(mi));
           mi.addEventListener("click", function() {
             dry.exts.filelistManager.filelist.filelist.forEach(
-              e => e.dom.dolosElement.checked = e.tags.user === user);
+              e => e.setData("checked", e.tags.user === user));
           });
 
           mi = $e("menuitem", null, "Select all");
           mi.addEventListener("click", function() {
             dry.exts.filelistManager.filelist.filelist.forEach(
-              e => e.dom.dolosElement.checked = true);
+              e => e.setData("checked", true));
           });
           el.appendChild(mi);
 
           mi = $e("menuitem", null, "Select none");
           mi.addEventListener("click", function() {
             dry.exts.filelistManager.filelist.filelist.forEach(
-              e => e.dom.dolosElement.checked = false);
+              e => e.setData("checked", false));
           });
           el.appendChild(mi);
 
           mi = $e("menuitem", null, "Invert selection");
           mi.addEventListener("click", function() {
             dry.exts.filelistManager.filelist.filelist.forEach(e => {
-              e = e.dom.dolosElement;
-              e.checked = !e.checked;
+              e.setData("checked", !e.getData("checked"));
             });
           });
           el.appendChild(mi);
@@ -240,12 +221,12 @@
             dry.exts.filelistManager.filelist.filelist.forEach(e => {
               let k = `${e.size}/${e.name}`;
               if (known.has(k)) {
-                e.dom.dolosElement.checked = true;
+                e.setData("checked", true);
                 console.log("marked " + k + " for doom");
               }
               else {
                 known.add(k);
-                e.dom.dolosElement.checked = false;
+                e.setData("checked", false);
               }
             });
           });
