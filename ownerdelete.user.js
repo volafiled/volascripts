@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mod EVERYTHING better, because reasons!
 // @namespace    http://not.jew.dance/
-// @version      0.50
+// @version      0.60
 // @description  try to take over the world!
 // @author       You
 // @match        https://volafile.org/r/*
@@ -32,6 +32,53 @@
 
   const $ = document.querySelector.bind(document);
 
+  let owner = false;
+
+  function createDeleteButton() {
+    let cont = $("#upload_container");
+    let el = $e("label", {
+      "for": "dolos_delete_input",
+      "id": "dolos_deleteButton",
+      "class": "button",
+      "style": "margin-right: 0.5em",
+    });
+    el.appendChild($e("span", {
+      "class": "icon-trash"
+    }));
+    el.appendChild($e("span", {
+      "class": "on_small_header"
+    }, "Delete"));
+    cont.insertBefore(el, cont.firstChild);
+    el.addEventListener("click", function() {
+      let ids = selected();
+      dry.exts.connection.call("deleteFiles", ids);
+    });
+    return "Time to rule this place";
+  }
+
+  function ownerTimeout(timeout) {
+    return new Promise((_, reject) => setTimeout(() => {
+      reject(new Error("You can't rule this place"));
+    }, timeout));
+  }
+
+  function isOwner() {
+    return new Promise(resolve => {
+      (function waitForOwner() {
+        if (owner) {
+          return resolve(createDeleteButton());
+        }
+        setTimeout(waitForOwner, 200);
+      })();
+    });
+  }
+
+  Promise.race([isOwner(), ownerTimeout(4000)]).then(success => {
+    console.log(success);
+  }, error => {
+    console.log(error.message);
+  });
+
   const loadRekts = () => {
     let rv = localStorage.getItem("rekted");
     rv = JSON.parse(rv || "[]");
@@ -42,18 +89,18 @@
       return new Set();
     }
   };
+
   const rekt = loadRekts();
   const saveRekts = () => {
     localStorage.setItem("rekted", JSON.stringify(Array.from(rekt.values())));
   };
 
-  let owner = false;
-
   dry.once("dom", () => {
     new class extends dry.MessageFilter {
       showMessage(nick, message, options, ...args) {
         try {
-          if (args.length && args[0] && args[0].id && owner && rekt.has(nick.toLowerCase().trim())) {
+          if (args.length && args[0] && args[0].id && owner &&
+            rekt.has(nick.toLowerCase().trim())) {
             dry.exts.connection.call("timeoutChat", args[0].id, nick);
           }
         }
@@ -76,31 +123,6 @@
         return true;
       }
     }();
-    setTimeout(function() {
-      let cont = $("#upload_container");
-      try {
-        let el = $e("label", {
-          "for": "dolos_delete_input",
-          "id": "dolos_deleteButton",
-          "class": "button",
-          "style": "margin-right: 0.5em",
-        });
-        el.appendChild($e("span", {
-          "class": "icon-trash"
-        }));
-        el.appendChild($e("span", {
-          "class": "on_small_header"
-        }, "Delete"));
-        cont.insertBefore(el, cont.firstChild);
-        el.addEventListener("click", function() {
-          let ids = selected();
-          dry.exts.connection.call("deleteFiles", ids);
-        });
-      }
-      catch (ex) {
-        console.error(ex);
-      }
-    }, 1000);
   });
 
   dry.once("load", () => {
@@ -138,7 +160,7 @@
       let files = dry.exts.filelistManager.filelist.filelist.slice(cf, lf);
       let checked = file.getData("checked");
       files.forEach(el => {
-        el.setData("checked", !el.getData("checked"));
+        el.setData("checked", !checked);
       });
       file.setData("checked", !checked);
       last_file.setData("checked", !checked);
@@ -177,7 +199,6 @@
         return;
       }
       owner = true;
-
       (function() {
         try {
           let el = $e("menu", {
@@ -240,6 +261,32 @@
           });
           el.appendChild(mi);
 
+          mi = $e("menuitem", null, "Select all files uploaded by not logged users");
+          mi.addEventListener("click", function() {
+            dry.exts.filelistManager.filelist.filelist.forEach(e => {
+              e.setData("checked", !!e.tags.nick);
+            });
+          });
+          el.appendChild(mi);
+
+          if (dry.exts.user.info.admin) {
+            let ip = null;
+            mi = $e("menuitem", null, `Select all files with users's IP`);
+            fl.addEventListener("contextmenu", function(e) {
+              let file = e.target.parentElement.firstChild.dolosElement;
+              if (!file) {
+                return;
+              }
+              ip = file.tags.ip;
+              this.textContent = `Select all files with IP of '${ip}'`;
+            }.bind(mi));
+            mi.addEventListener("click", function() {
+              dry.exts.filelistManager.filelist.filelist.forEach(e => {
+                e.setData("checked", e.tags.ip === ip);
+              });
+            });
+            el.appendChild(mi);
+          }
           document.body.appendChild(el);
         }
         catch (ex) {
