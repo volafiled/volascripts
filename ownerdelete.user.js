@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mod EVERYTHING better, because reasons!
 // @namespace    http://not.jew.dance/
-// @version      0.60
+// @version      0.70
 // @description  try to take over the world!
 // @author       You
 // @match        https://volafile.org/r/*
@@ -32,9 +32,13 @@
 
   const $ = document.querySelector.bind(document);
 
-  let owner = false;
+  let isOwner = false;
 
-  function createDeleteButton() {
+  (function() {
+    return new Promise(resolve => {
+      isOwner = resolve;
+    });
+  })().then(() => {
     let cont = $("#upload_container");
     let el = $e("label", {
       "for": "dolos_delete_input",
@@ -53,30 +57,6 @@
       let ids = selected();
       dry.exts.connection.call("deleteFiles", ids);
     });
-    return "Time to rule this place";
-  }
-
-  function ownerTimeout(timeout) {
-    return new Promise((_, reject) => setTimeout(() => {
-      reject(new Error("You can't rule this place"));
-    }, timeout));
-  }
-
-  function isOwner() {
-    return new Promise(resolve => {
-      (function waitForOwner() {
-        if (owner) {
-          return resolve(createDeleteButton());
-        }
-        setTimeout(waitForOwner, 200);
-      })();
-    });
-  }
-
-  Promise.race([isOwner(), ownerTimeout(4000)]).then(success => {
-    console.log(success);
-  }, error => {
-    console.log(error.message);
   });
 
   const loadRekts = () => {
@@ -99,7 +79,7 @@
     new class extends dry.MessageFilter {
       showMessage(nick, message, options, ...args) {
         try {
-          if (args.length && args[0] && args[0].id && owner &&
+          if (args.length && args[0] && args[0].id && isOwner === true &&
             rekt.has(nick.toLowerCase().trim())) {
             dry.exts.connection.call("timeoutChat", args[0].id, nick);
           }
@@ -111,15 +91,37 @@
     }();
     new class extends dry.Commands {
       rekt(user) {
-        console.log("rekting user", user);
-        rekt.add(user.toLowerCase().trim());
-        saveRekts();
-        return true;
+        if (isOwner === true) {
+          user = user.toLowerCase().trim();
+          if (user !== "") {
+            console.log("rekting user", user);
+            rekt.add(user);
+            saveRekts();
+          }
+          else {
+            console.log("can't rekt an empty string");
+          }
+          return true;
+        }
       }
       unrekt(user) {
-        console.log("unrekting user", user);
-        rekt.delete(user.toLowerCase().trim());
-        saveRekts();
+        if (isOwner === true) {
+          user = user.toLowerCase().trim();
+          if (user !== "") {
+            console.log("unrekting user", user);
+            rekt.delete(user);
+            saveRekts();
+          }
+          else {
+            console.log("can't unrekt an empty string");
+          }
+          return true;
+        }
+      }
+      showrekts() {
+        if (isOwner === true) {
+          console.log(rekt);
+        }
         return true;
       }
     }();
@@ -138,6 +140,9 @@
       return null;
     };
     const file_click = function(e) {
+      if (!e.target.classList.contains("filetype")) {
+        return;
+      }
       let file = e.target.parentNode.dolosElement;
       e.stopPropagation();
       e.preventDefault();
@@ -195,10 +200,11 @@
     };
 
     function createButtons(isOwnerOrAdminOrJanitor) {
-      if (owner || !isOwnerOrAdminOrJanitor) {
+      if (isOwner === true || !isOwnerOrAdminOrJanitor) {
         return;
       }
-      owner = true;
+      isOwner(isOwner = true);
+
       (function() {
         try {
           let el = $e("menu", {
