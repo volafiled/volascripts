@@ -31,6 +31,7 @@
   }
 
   const $ = document.querySelector.bind(document);
+  const $$ = document.querySelectorAll.bind(document);
 
   let isOwner = false;
 
@@ -71,10 +72,10 @@
   };
 
   const rekt = loadRekts();
+
   const saveRekts = () => {
     localStorage.setItem("rekted", JSON.stringify(Array.from(rekt.values())));
   };
-
   dry.once("dom", () => {
     new class extends dry.MessageFilter {
       showMessage(nick, message, options, ...args) {
@@ -129,6 +130,7 @@
 
   dry.once("load", () => {
     let last_file = null;
+    let ifVolanail = false;
     const find_file = function(file) {
       let id = file.id;
       let fl = dry.exts.filelistManager.filelist.filelist;
@@ -193,17 +195,23 @@
         let fe = file.dom.fileElement;
         fe.setAttribute("contextmenu", "dolos_cuckmenu");
         c.dolosElement = file;
+        if (ifVolanail) {
+          let te = file.dom.vnThumbElement.firstChild;
+          te.setAttribute("contextmenu", "dolos_cuckmenu");
+          te.dolosElement = file;
+        }
       }
       catch (ex) {
         console.error(ex);
       }
     };
 
-    function createButtons(isOwnerOrAdminOrJanitor) {
+    const createButtons = function(isOwnerOrAdminOrJanitor) {
       if (isOwner === true || !isOwnerOrAdminOrJanitor) {
         return;
       }
       isOwner(isOwner = true);
+      ifVolanail = !!$("#volanail-button");
 
       (function() {
         try {
@@ -214,15 +222,17 @@
           let mi = $e("menuitem", null, "Select all files from this user");
           el.appendChild(mi);
           let user = null;
-          let fl = $("#file_list");
-          fl.addEventListener("contextmenu", function(e) {
-            let file = e.target.parentElement.firstChild.dolosElement;
-            if (!file) {
-              return;
-            }
-            user = file.tags.user || file.tags.nick;
-            this.textContent = `Select all files from user '${user}'`;
-          }.bind(mi));
+          let fl = $$("#file_list, #volanail-list");
+          for (let i = 0, len = fl.length; i < len; i++) {
+            fl[i].addEventListener("contextmenu", function(e) {
+              let file = e.target.parentElement.firstChild.dolosElement;
+              if (!file) {
+                return;
+              }
+              user = file.tags.user || file.tags.nick;
+              this.textContent = `Select all files from user '${user}'`;
+            }.bind(mi));
+          }
           mi.addEventListener("click", function() {
             dry.exts.filelistManager.filelist.filelist.forEach(
               e => e.setData("checked", (e.tags.user || e.tags.nick) === user));
@@ -278,14 +288,16 @@
           if (dry.exts.user.info.admin) {
             let ip = null;
             mi = $e("menuitem", null, `Select all files with users's IP`);
-            fl.addEventListener("contextmenu", function(e) {
-              let file = e.target.parentElement.firstChild.dolosElement;
-              if (!file) {
-                return;
-              }
-              ip = file.tags.ip;
-              this.textContent = `Select all files with IP of '${ip}'`;
-            }.bind(mi));
+            for (let i = 0, len = fl.length; i < len; i++) {
+              fl[i].addEventListener("contextmenu", function(e) {
+                let file = e.target.parentElement.firstChild.dolosElement;
+                if (!file) {
+                  return;
+                }
+                ip = file.tags.ip;
+                this.textContent = `Select all files with IP of '${ip}'`;
+              }.bind(mi));
+            }
             mi.addEventListener("click", function() {
               dry.exts.filelistManager.filelist.filelist.forEach(e => {
                 e.setData("checked", e.tags.ip === ip);
@@ -299,11 +311,20 @@
           console.error(ex);
         }
       })();
-      dry.exts.filelistManager.on("fileAdded", prepare_file);
-      dry.exts.filelistManager.on("fileUpdated", prepare_file);
-      dry.exts.filelistManager.filelist.filelist.forEach(prepare_file);
-
-    }
+      const addHandlers = function() {
+        dry.exts.filelistManager.on("fileAdded", prepare_file);
+        dry.exts.filelistManager.on("fileUpdated", prepare_file);
+        dry.exts.filelistManager.filelist.filelist.forEach(prepare_file);
+      };
+      if (ifVolanail) {
+        dry.exts.file.once("volanailed", () => {
+          addHandlers();
+        });
+      }
+      else {
+        addHandlers();
+      }
+    };
     dry.exts.user.on("info_owner", createButtons);
     dry.exts.user.on("info_admin", createButtons);
     dry.exts.user.on("info_janitor", createButtons);
