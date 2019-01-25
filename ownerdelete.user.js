@@ -196,9 +196,12 @@
         fe.setAttribute("contextmenu", "dolos_cuckmenu");
         c.dolosElement = file;
         if (ifVolanail) {
-          let te = file.dom.vnThumbElement.firstChild;
-          te.setAttribute("contextmenu", "dolos_cuckmenu");
-          te.dolosElement = file;
+          // wait for vnThumbElement on volanail side
+          setTimeout(() => {
+            let te = file.dom.vnThumbElement.firstChild;
+            te.setAttribute("contextmenu", "dolos_cuckmenu");
+            te.dolosElement = file;
+          });
         }
       }
       catch (ex) {
