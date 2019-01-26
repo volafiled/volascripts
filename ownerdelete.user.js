@@ -32,7 +32,6 @@
 
   const $ = document.querySelector.bind(document);
   const $$ = document.querySelectorAll.bind(document);
-
   let isOwner = false;
 
   (function() {
@@ -95,33 +94,33 @@
         if (isOwner === true) {
           user = user.toLowerCase().trim();
           if (user !== "") {
-            console.log("rekting user", user);
+            dry.appendMessage("Rekt", `${user} got rekt`);
             rekt.add(user);
             saveRekts();
           }
           else {
-            console.log("can't rekt an empty string");
+            dry.appendMessage("Error", "Can't rekt an empty string");
           }
-          return true;
         }
+        return true;
       }
       unrekt(user) {
         if (isOwner === true) {
           user = user.toLowerCase().trim();
           if (user !== "") {
-            console.log("unrekting user", user);
+            dry.appendMessage("Unrekt", `${user} got unrekt`);
             rekt.delete(user);
             saveRekts();
           }
           else {
-            console.log("can't unrekt an empty string");
+            dry.appendMessage("Error", "Can't unrekt an empty string");
           }
-          return true;
         }
+        return true;
       }
       showrekts() {
         if (isOwner === true) {
-          console.log(rekt);
+          dry.unsafeWindow.alert(`Rekt boys:\n${Array.from(rekt.values())}`);
         }
         return true;
       }
