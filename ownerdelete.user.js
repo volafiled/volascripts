@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mod EVERYTHING better, because reasons!
 // @namespace    http://not.jew.dance/
-// @version      0.80
+// @version      0.90
 // @description  try to take over the world!
 // @author       You
 // @match        https://volafile.org/r/*
@@ -71,6 +71,7 @@
   };
 
   const rekt = loadRekts();
+  const whitePurge = "-purgewhiteys-";
 
   const saveRekts = () => {
     localStorage.setItem("rekted", JSON.stringify(Array.from(rekt.values())));
@@ -79,9 +80,13 @@
     new class extends dry.MessageFilter {
       showMessage(fn, nick, msgObj, options, data) {
         try {
-          if (isOwner === true && data && data.id &&
-            rekt.has(nick.toLowerCase().trim())) {
-            dry.exts.connection.call("timeoutChat", data.id, 3600 * 24);
+          if (isOwner === true && data && data.id) {
+            if (rekt.has(nick.toLowerCase().trim())) {
+              dry.exts.connection.call("timeoutChat", data.id, 3600 * 24);
+            }
+            if (!options.user && rekt.has(whitePurge)) {
+              dry.exts.connection.call("timeoutChat", data.id, 3600 * 24);
+            }
           }
         }
         catch (ex) {
@@ -123,6 +128,19 @@
           dry.unsafeWindow.alert(`Rekt boys:\n${Array.from(rekt.values())}`);
         }
         return true;
+      }
+      killwhites() {
+        if (isOwner === true) {
+          if (rekt.has(whitePurge)) {
+            dry.appendMessage("Purgatory", "Whiteposting is allowed now");
+            rekt.delete(whitePurge);
+          }
+          else {
+            dry.appendMessage("Purgatory", "All white posters will be timed out");
+            rekt.add(whitePurge);
+          }
+          saveRekts();
+        }
       }
     }();
   });
@@ -179,7 +197,6 @@
         }
         if (file.tags && (file.tags.user || file.tags.nick) &&
           rekt.has((file.tags.user || file.tags.nick).toLowerCase().trim())) {
-          console.log(file.id);
           dry.exts.connection.call("timeoutFile", file.id, 3600 * 24);
           dry.exts.connection.call("deleteFiles", [file.id]);
         }
