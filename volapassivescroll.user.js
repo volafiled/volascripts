@@ -10,7 +10,7 @@
 // @require     https://cdn.jsdelivr.net/gh/volafiled/volascripts/dry.js
 // @grant       none
 // @run-at      document-start
-// @version     1
+// @version     2
 // ==/UserScript==
 /* globals dry, SimplerScrollbar, GM */
 dry.once("load", () => {
@@ -20,8 +20,9 @@ dry.once("load", () => {
   const container = $("#files_frame");
   const wrapper = $("#files_scroller");
   const content = $("#files_content");
-  SimplerScrollbar.initContainer({container, wrapper, content, rightOffset: 2});
+  SimplerScrollbar.initContainer({container, wrapper, content, rightOffset: -2});
   const new_scrollbar = $(".ss-scroll");
   new_scrollbar.classList.add("scroller-slider");
+  content.style.left = 0;
   wrapper.removeChild($("#files_scroller > .scroller-pane"));
 });
