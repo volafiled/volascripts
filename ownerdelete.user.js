@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mod EVERYTHING better, because reasons!
 // @namespace    http://not.jew.dance/
-// @version      0.90
+// @version      0.91
 // @description  try to take over the world!
 // @author       You
 // @match        https://volafile.org/r/*
@@ -125,7 +125,9 @@
       }
       showrekts() {
         if (isOwner === true) {
-          dry.unsafeWindow.alert(`Rekt boys:\n${Array.from(rekt.values())}`);
+          dry.unsafeWindow.alert(
+            `Rekt boys:\n${Array.from(rekt.values()).filter(el => el !== whitePurge)}`
+          );
         }
         return true;
       }
