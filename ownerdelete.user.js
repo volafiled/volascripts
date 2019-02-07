@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mod EVERYTHING better, because reasons!
 // @namespace    http://not.jew.dance/
-// @version      0.70
+// @version      0.80
 // @description  try to take over the world!
 // @author       You
 // @match        https://volafile.org/r/*
@@ -77,11 +77,11 @@
   };
   dry.once("dom", () => {
     new class extends dry.MessageFilter {
-      showMessage(nick, message, options, ...args) {
+      showMessage(fn, nick, msgObj, options, data) {
         try {
-          if (args.length && args[0] && args[0].id && isOwner === true &&
+          if (isOwner === true && data && data.id &&
             rekt.has(nick.toLowerCase().trim())) {
-            dry.exts.connection.call("timeoutChat", args[0].id, nick);
+            dry.exts.connection.call("timeoutChat", data.id, 3600 * 24);
           }
         }
         catch (ex) {
@@ -179,7 +179,8 @@
         }
         if (file.tags && (file.tags.user || file.tags.nick) &&
           rekt.has((file.tags.user || file.tags.nick).toLowerCase().trim())) {
-          dry.exts.connection.call("timeoutFile", file.id, file.tags.user || file.tags.nick);
+          console.log(file.id);
+          dry.exts.connection.call("timeoutFile", file.id, 3600 * 24);
           dry.exts.connection.call("deleteFiles", [file.id]);
         }
         let c = file.dom.controlElement;
