@@ -7,7 +7,7 @@
 // @author      Buddy Boi
 // @match       https://volafile.org/r/*
 // @require     https://cdn.jsdelivr.net/gh/szero/simpler-scrollbar/simplerscrollbar.min.js
-// @require     https://cdn.jsdelivr.net/gh/volafiled/volascripts/dry.js
+// @require     https://cdn.jsdelivr.net/gh/volafiled/volascripts@a9c0424e5498deea9fd437c15b2137c3bec07c61/dry.min.js
 // @grant       none
 // @run-at      document-start
 // @version     2
