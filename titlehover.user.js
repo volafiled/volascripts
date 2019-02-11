@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         StuffOnNameHover
+// @name         Maintainers On Room Title Hover
 // @namespace    https://not.jew.dance
 // @version      3
 // @description  Show da owner und jannies
