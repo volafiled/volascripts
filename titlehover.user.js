@@ -19,7 +19,7 @@ dry.once("load", () => {
   let jannies = "";
   dry.exts.connection.on("config", cfg => {
     if (typeof cfg.owner === "string" || room_owner) {
-      room_owner = cfg.owner || room_owner;
+      room_owner = cfg.owner ? `${cfg.owner} is the room owner\n` : room_owner;
     }
     else {
       room_owner = "Room has no owner";
@@ -27,6 +27,6 @@ dry.once("load", () => {
     if (Array.isArray(cfg.janitors)) {
       jannies = cfg.janitors.length ? `Janitors: ${cfg.janitors}` : "";
     }
-    room_title.title = `${room_owner} is the room owner\n${jannies}`;
+    room_title.title = `${room_owner}${jannies}`;
   });
 });
