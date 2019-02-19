@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mod EVERYTHING better, because reasons!
 // @namespace    http://not.jew.dance/
-// @version      0.91
+// @version      1.0
 // @description  try to take over the world!
 // @author       You
 // @match        https://volafile.org/r/*
@@ -150,6 +150,8 @@
   dry.once("load", () => {
     let last_file = null;
     let ifVolanail = false;
+    const ownerFiles = new WeakMap();
+
     const find_file = function(file) {
       let id = file.id;
       let fl = dry.exts.filelistManager.filelist.filelist;
@@ -164,7 +166,7 @@
       if (!e.target.classList.contains("filetype")) {
         return;
       }
-      let file = e.target.parentNode.dolosElement;
+      let file = ownerFiles.get(e.target.parentNode);
       e.stopPropagation();
       e.preventDefault();
       if (!e.shiftKey) {
@@ -203,7 +205,7 @@
           dry.exts.connection.call("deleteFiles", [file.id]);
         }
         let c = file.dom.controlElement;
-        if (c.dolosElement) {
+        if (ownerFiles.has(c)) {
           return;
         }
         if (file.tags.nick) {
@@ -213,13 +215,13 @@
         c.addEventListener("click", file_click, true);
         let fe = file.dom.fileElement;
         fe.setAttribute("contextmenu", "dolos_cuckmenu");
-        c.dolosElement = file;
+        ownerFiles.set(c, file);
         if (ifVolanail) {
           // wait for vnThumbElement on volanail side
           setTimeout(() => {
             let te = file.dom.vnThumbElement.firstChild;
             te.setAttribute("contextmenu", "dolos_cuckmenu");
-            te.dolosElement = file;
+            ownerFiles.set(te, file);
           });
         }
       }
@@ -247,7 +249,7 @@
           let fl = $$("#file_list, #volanail-list");
           for (let i = 0, len = fl.length; i < len; i++) {
             fl[i].addEventListener("contextmenu", function(e) {
-              let file = e.target.parentElement.firstChild.dolosElement;
+              let file = ownerFiles.get(e.target.parentElement.firstChild);
               if (!file) {
                 return;
               }
@@ -312,7 +314,7 @@
             mi = $e("menuitem", null, `Select all files with users's IP`);
             for (let i = 0, len = fl.length; i < len; i++) {
               fl[i].addEventListener("contextmenu", function(e) {
-                let file = e.target.parentElement.firstChild.dolosElement;
+                let file = ownerFiles.get(e.target.parentElement.firstChild);
                 if (!file) {
                   return;
                 }
