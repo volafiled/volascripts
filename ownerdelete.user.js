@@ -162,11 +162,25 @@
       }
       return null;
     };
+    const getFileFromEvent = function(e) {
+      let file, fileElement = e.target;
+      while (!file) {
+        if (!fileElement) {
+          return null;
+        }
+        file = ownerFiles.get(fileElement);
+        fileElement = fileElement.parentElement;
+      }
+      return file;
+    };
     const file_click = function(e) {
       if (!e.target.classList.contains("filetype")) {
         return;
       }
-      let file = ownerFiles.get(e.target.parentNode);
+      const file = getFileFromEvent(e);
+      if (!file) {
+        return;
+      }
       e.stopPropagation();
       e.preventDefault();
       if (!e.shiftKey) {
@@ -204,18 +218,17 @@
           dry.exts.connection.call("timeoutFile", file.id, 3600 * 24);
           dry.exts.connection.call("deleteFiles", [file.id]);
         }
-        let c = file.dom.controlElement;
-        if (ownerFiles.has(c)) {
+        let fe = file.dom.fileElement;
+        if (ownerFiles.has(fe)) {
           return;
         }
         if (file.tags.nick) {
           const tags = Object.assign(file.tags, {cuck: "Whitename"});
           file.dom.setTags(tags);
         }
-        c.addEventListener("click", file_click, true);
-        let fe = file.dom.fileElement;
+        fe.addEventListener("click", file_click, true);
         fe.setAttribute("contextmenu", "dolos_cuckmenu");
-        ownerFiles.set(c, file);
+        ownerFiles.set(fe, file);
         if (ifVolanail) {
           // wait for vnThumbElement on volanail side
           setTimeout(() => {
@@ -249,17 +262,18 @@
           let fl = $$("#file_list, #volanail-list");
           for (let i = 0, len = fl.length; i < len; i++) {
             fl[i].addEventListener("contextmenu", function(e) {
-              let file = ownerFiles.get(e.target.parentElement.firstChild);
+              const file = getFileFromEvent(e);
               if (!file) {
                 return;
               }
               user = file.tags.user || file.tags.nick;
               this.textContent = `Select all files from user '${user}'`;
+              user = user.toLowerCase();
             }.bind(mi));
           }
           mi.addEventListener("click", function() {
             dry.exts.filelistManager.filelist.filelist.forEach(
-              e => e.setData("checked", (e.tags.user || e.tags.nick) === user));
+              e => e.setData("checked", (e.tags.user || e.tags.nick).toLowerCase() === user));
           });
 
           mi = $e("menuitem", null, "Select all");
@@ -314,7 +328,7 @@
             mi = $e("menuitem", null, `Select all files with users's IP`);
             for (let i = 0, len = fl.length; i < len; i++) {
               fl[i].addEventListener("contextmenu", function(e) {
-                let file = ownerFiles.get(e.target.parentElement.firstChild);
+                const file = getFileFromEvent(e);
                 if (!file) {
                   return;
                 }
