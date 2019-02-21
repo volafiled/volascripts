@@ -5,7 +5,8 @@
 // @description  try to take over the world!
 // @author       You
 // @match        https://volafile.org/r/*
-// @require      https://cdn.jsdelivr.net/gh/volafiled/volascripts/dry.js
+// @icon         https://volafile.org/favicon.ico
+// @require      https://cdn.jsdelivr.net/gh/volafiled/volascripts@a9c0424e5498deea9fd437c15b2137c3bec07c61/dry.min.js
 // @grant        none
 // @run-at       document-start
 // ==/UserScript==
@@ -149,7 +150,6 @@
 
   dry.once("load", () => {
     let last_file = null;
-    let ifVolanail = false;
     const ownerFiles = new WeakMap();
 
     const find_file = function(file) {
@@ -218,7 +218,7 @@
           dry.exts.connection.call("timeoutFile", file.id, 3600 * 24);
           dry.exts.connection.call("deleteFiles", [file.id]);
         }
-        let fe = file.dom.fileElement;
+        const fe = file.dom.fileElement;
         if (ownerFiles.has(fe)) {
           return;
         }
@@ -229,14 +229,12 @@
         fe.addEventListener("click", file_click, true);
         fe.setAttribute("contextmenu", "dolos_cuckmenu");
         ownerFiles.set(fe, file);
-        if (ifVolanail) {
-          // wait for vnThumbElement on volanail side
-          setTimeout(() => {
-            let te = file.dom.vnThumbElement.firstChild;
-            te.setAttribute("contextmenu", "dolos_cuckmenu");
-            ownerFiles.set(te, file);
-          });
-        }
+        //volanail support
+        file.once("thumb_added", () => {
+          const te = file.dom.vnThumbElement;
+          te.setAttribute("contextmenu", "dolos_cuckmenu");
+          ownerFiles.set(te, file);
+        });
       }
       catch (ex) {
         console.error(ex);
@@ -248,7 +246,6 @@
         return;
       }
       isOwner(isOwner = true);
-      ifVolanail = !!$("#volanail-button");
 
       (function() {
         try {
@@ -259,9 +256,9 @@
           let mi = $e("menuitem", null, "Select all files from this user");
           el.appendChild(mi);
           let user = null;
-          let fl = $$("#file_list, #volanail-list");
-          for (let i = 0, len = fl.length; i < len; i++) {
-            fl[i].addEventListener("contextmenu", function(e) {
+          const fl = $$("#file_list, #volanail-list");
+          fl.forEach(list => {
+            list.addEventListener("contextmenu", function(e) {
               const file = getFileFromEvent(e);
               if (!file) {
                 return;
@@ -270,7 +267,7 @@
               this.textContent = `Select all files from user '${user}'`;
               user = user.toLowerCase();
             }.bind(mi));
-          }
+          });
           mi.addEventListener("click", function() {
             dry.exts.filelistManager.filelist.filelist.forEach(
               e => e.setData("checked", (e.tags.user || e.tags.nick).toLowerCase() === user));
@@ -326,8 +323,8 @@
           if (dry.exts.user.info.admin) {
             let ip = null;
             mi = $e("menuitem", null, `Select all files with users's IP`);
-            for (let i = 0, len = fl.length; i < len; i++) {
-              fl[i].addEventListener("contextmenu", function(e) {
+            fl.forEach(list => {
+              list.addEventListener("contextmenu", function(e) {
                 const file = getFileFromEvent(e);
                 if (!file) {
                   return;
@@ -335,7 +332,7 @@
                 ip = file.tags.ip;
                 this.textContent = `Select all files with IP of '${ip}'`;
               }.bind(mi));
-            }
+            });
             mi.addEventListener("click", function() {
               dry.exts.filelistManager.filelist.filelist.forEach(e => {
                 e.setData("checked", e.tags.ip === ip);
@@ -349,19 +346,9 @@
           console.error(ex);
         }
       })();
-      const addHandlers = function() {
-        dry.exts.filelistManager.on("fileAdded", prepare_file);
-        dry.exts.filelistManager.on("fileUpdated", prepare_file);
-        dry.exts.filelistManager.filelist.filelist.forEach(prepare_file);
-      };
-      if (ifVolanail) {
-        dry.exts.file.once("volanailed", () => {
-          addHandlers();
-        });
-      }
-      else {
-        addHandlers();
-      }
+      dry.exts.filelistManager.on("fileAdded", prepare_file);
+      dry.exts.filelistManager.on("fileUpdated", prepare_file);
+      dry.exts.filelistManager.filelist.filelist.forEach(prepare_file);
     };
     dry.exts.user.on("info_owner", createButtons);
     dry.exts.user.on("info_admin", createButtons);

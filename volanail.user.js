@@ -6,9 +6,9 @@
 // @author      topkuk productions
 // @match       https://volafile.org/r/*
 // @require     https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
-// @require     https://cdn.rawgit.com/RealDolos/volascripts/1dd689f72763c0e59f567fdf93865837e35964d6/dry.js
-// @require     https://cdn.rawgit.com/RealDolos/node-parrot/acb622d5d9af34f0de648385e6ab4d2411373037/parrot/finally.js
-// @require     https://cdn.rawgit.com/RealDolos/node-parrot/acb622d5d9af34f0de648385e6ab4d2411373037/parrot/pool.js
+// @require     https://cdn.jsdelivr.net/gh/volafiled/volascripts@a9c0424e5498deea9fd437c15b2137c3bec07c61/dry.min.js
+// @require     https://cdn.jsdelivr.net/gh/volafiled/node-parrot@acb622d5d9af34f0de648385e6ab4d2411373037/parrot/finally.min.js
+// @require     https://cdn.jsdelivr.net/gh/volafiled/node-parrot@acb622d5d9af34f0de648385e6ab4d2411373037/parrot/pool.min.js
 // @grant       none
 // @version     5
 // ==/UserScript==
@@ -557,13 +557,13 @@ dry.once("load", () => {
         else if (!f.visible && parent) {
           parent.removeChild(el);
         }
+        f.emit("thumb_added");
       });
       loader.refresh();
     }
     catch (ex) {
       console.error("something went wronk", ex);
     }
-    dry.exts.file.emit("volanailed");
     return rv;
   });
 
