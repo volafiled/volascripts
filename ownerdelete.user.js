@@ -189,7 +189,8 @@ dry.once("load", () => {
     if (cf > lf) {
       [lf, cf] = [cf, lf];
     }
-    const files = dry.exts.filelistManager.filelist.filelist.slice(cf, lf);
+    const files = dry.exts.filelistManager.filelist.filelist.slice(cf, lf).
+      filter(file => file.visible);
     const checked = file.getData("checked");
     files.forEach(el => {
       el.setData("checked", !checked);
