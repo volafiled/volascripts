@@ -10,7 +10,7 @@
 // @require     https://cdn.jsdelivr.net/gh/volafiled/node-parrot@acb622d5d9af34f0de648385e6ab4d2411373037/parrot/finally.min.js
 // @require     https://cdn.jsdelivr.net/gh/volafiled/node-parrot@acb622d5d9af34f0de648385e6ab4d2411373037/parrot/pool.min.js
 // @grant       none
-// @version     5
+// @version     6
 // ==/UserScript==
 /* globals GM, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
