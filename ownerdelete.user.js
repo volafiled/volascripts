@@ -12,346 +12,371 @@
 // ==/UserScript==
 /* globals dry */
 (function() {
-  'use strict';
-  function selected() {
-    return Array.from(
-      dry.exts.filelistManager.filelist.filelist.filter(e => e.getData("checked")).map(e => e.id)
-    );
+"use strict";
+
+function selected() {
+  return Array.from(
+    dry.exts.filelistManager.filelist.filelist.
+      filter(e => e.getData("checked")).
+      map(e => e.id)
+  );
+}
+
+function $e(tag, attrs, text) {
+  const rv = document.createElement(tag);
+  attrs = attrs || {};
+  for (const a in attrs) {
+    rv.setAttribute(a, attrs[a]);
   }
-
-  function $e(tag, attrs, text) {
-    let rv = document.createElement(tag);
-    attrs = attrs || {};
-    for (let a in attrs) {
-      rv.setAttribute(a, attrs[a]);
-    }
-    if (text) {
-      rv.textContent = text;
-    }
-    return rv;
+  if (text) {
+    rv.textContent = text;
   }
+  return rv;
+}
 
-  const $ = document.querySelector.bind(document);
-  const $$ = document.querySelectorAll.bind(document);
-  let isOwner = false;
+const $ = document.querySelector.bind(document);
+const $$ = document.querySelectorAll.bind(document);
+let isOwner = false;
 
-  (function() {
-    return new Promise(resolve => {
-      isOwner = resolve;
-    });
-  })().then(() => {
-    let cont = $("#upload_container");
-    let el = $e("label", {
-      "for": "dolos_delete_input",
-      "id": "dolos_deleteButton",
-      "class": "button",
-      "style": "margin-right: 0.5em",
-    });
-    el.appendChild($e("span", {
-      "class": "icon-trash"
-    }));
-    el.appendChild($e("span", {
-      "class": "on_small_header"
-    }, "Delete"));
-    cont.insertBefore(el, cont.firstChild);
-    el.addEventListener("click", function() {
-      let ids = selected();
-      dry.exts.connection.call("deleteFiles", ids);
-    });
-  });
+const loadRekts = () => {
+  let rv = localStorage.getItem("rekted");
+  rv = JSON.parse(rv || "[]");
+  try {
+    return new Set(rv || []);
+  }
+  catch (ex) {
+    return new Set();
+  }
+};
 
-  const loadRekts = () => {
-    let rv = localStorage.getItem("rekted");
-    rv = JSON.parse(rv || "[]");
-    try {
-      return new Set(rv || []);
-    }
-    catch (ex) {
-      return new Set();
-    }
-  };
+const rekt = loadRekts();
+const whitePurge = "-purgewhiteys-";
 
-  const rekt = loadRekts();
-  const whitePurge = "-purgewhiteys-";
-
-  const saveRekts = () => {
-    localStorage.setItem("rekted", JSON.stringify(Array.from(rekt.values())));
-  };
-  dry.once("dom", () => {
-    new class extends dry.MessageFilter {
-      showMessage(fn, nick, msgObj, options, data) {
-        try {
-          if (isOwner === true && data && data.id) {
-            if (rekt.has(nick.toLowerCase().trim())) {
-              dry.exts.connection.call("timeoutChat", data.id, 3600 * 24);
-            }
-            if (!options.user && rekt.has(whitePurge)) {
-              dry.exts.connection.call("timeoutChat", data.id, 3600 * 24);
-            }
-          }
-        }
-        catch (ex) {
-          console.error(ex);
-        }
-      }
-    }();
-    new class extends dry.Commands {
-      rekt(user) {
-        if (isOwner === true) {
-          user = user.toLowerCase().trim();
-          if (user !== "") {
-            dry.appendMessage("Rekt", `${user} got rekt`);
-            rekt.add(user);
-            saveRekts();
-          }
-          else {
-            dry.appendMessage("Error", "Can't rekt an empty string");
-          }
-        }
-        return true;
-      }
-      unrekt(user) {
-        if (isOwner === true) {
-          user = user.toLowerCase().trim();
-          if (user !== "") {
-            dry.appendMessage("Unrekt", `${user} got unrekt`);
-            rekt.delete(user);
-            saveRekts();
-          }
-          else {
-            dry.appendMessage("Error", "Can't unrekt an empty string");
-          }
-        }
-        return true;
-      }
-      showrekts() {
-        if (isOwner === true) {
-          dry.unsafeWindow.alert(
-            `Rekt boys:\n${Array.from(rekt.values()).filter(el => el !== whitePurge)}`
-          );
-        }
-        return true;
-      }
-      killwhites() {
-        if (isOwner === true) {
-          if (rekt.has(whitePurge)) {
-            dry.appendMessage("Purgatory", "Whiteposting is allowed now");
-            rekt.delete(whitePurge);
-          }
-          else {
-            dry.appendMessage("Purgatory", "All white posters will be timed out");
-            rekt.add(whitePurge);
-          }
-          saveRekts();
-        }
-      }
-    }();
-  });
-
-  dry.once("load", () => {
-    let last_file = null;
-    const ownerFiles = new WeakMap();
-
-    const find_file = function(file) {
-      let id = file.id;
-      let fl = dry.exts.filelistManager.filelist.filelist;
-      for (let i = 0; i < fl.length; ++i) {
-        if (fl[i].id === id) {
-          return { idx: i, item: fl[i] };
-        }
-      }
-      return null;
-    };
-    const getFileFromEvent = function(e) {
-      let file, fileElement = e.target;
-      while (!file) {
-        if (!fileElement) {
-          return null;
-        }
-        file = ownerFiles.get(fileElement);
-        fileElement = fileElement.parentElement;
-      }
-      return file;
-    };
-    const file_click = function(e) {
-      if (!e.target.classList.contains("filetype")) {
-        return;
-      }
-      const file = getFileFromEvent(e);
-      if (!file) {
-        return;
-      }
-      e.stopPropagation();
-      e.preventDefault();
-      if (!e.shiftKey) {
-        file.setData("checked", !file.getData("checked"));
-        last_file = file;
-        return;
-      }
-      if (!last_file) {
-        return;
-      }
-      let lf = find_file(last_file), cf = find_file(file);
-      if (!lf || !cf) {
-        return;
-      }
-      [lf, cf] = [lf.idx, cf.idx];
-      if (cf > lf) {
-        [lf, cf] = [cf, lf];
-      }
-      let files = dry.exts.filelistManager.filelist.filelist.slice(cf, lf);
-      let checked = file.getData("checked");
-      files.forEach(el => {
-        el.setData("checked", !checked);
-      });
-      file.setData("checked", !checked);
-      last_file.setData("checked", !checked);
-      return false;
-    };
-    const prepare_file = function(file) {
+const saveRekts = () => {
+  localStorage.setItem("rekted", JSON.stringify(Array.from(rekt.values())));
+};
+dry.once("dom", () => {
+  new class extends dry.MessageFilter {
+    showMessage(fn, nick, msgObj, options, data) {
       try {
-        if (!file.id) {
+        if (!isOwner || !data || !data.id) {
           return;
         }
-        if (file.tags && (file.tags.user || file.tags.nick) &&
-          rekt.has((file.tags.user || file.tags.nick).toLowerCase().trim())) {
-          dry.exts.connection.call("timeoutFile", file.id, 3600 * 24);
-          dry.exts.connection.call("deleteFiles", [file.id]);
-        }
-        const fe = file.dom.fileElement;
-        if (ownerFiles.has(fe)) {
+
+        if (rekt.has(nick.toLowerCase().trim())) {
+          dry.exts.connection.call("timeoutChat", data.id, 3600 * 24);
           return;
         }
-        if (file.tags.nick) {
-          const tags = Object.assign(file.tags, {cuck: "Whitename"});
-          file.dom.setTags(tags);
+        if (!options.user && rekt.has(whitePurge)) {
+          dry.exts.connection.call("timeoutChat", data.id, 3600 * 24);
+          return;
         }
-        fe.addEventListener("click", file_click, true);
-        fe.setAttribute("contextmenu", "dolos_cuckmenu");
-        ownerFiles.set(fe, file);
-        //volanail support
-        file.once("thumb_added", () => {
-          const te = file.dom.vnThumbElement;
-          te.setAttribute("contextmenu", "dolos_cuckmenu");
-          ownerFiles.set(te, file);
-        });
       }
       catch (ex) {
         console.error(ex);
       }
-    };
+    }
+  }();
 
-    const createButtons = function(isOwnerOrAdminOrJanitor) {
-      if (isOwner === true || !isOwnerOrAdminOrJanitor) {
+  new class extends dry.Commands {
+    rekt(user) {
+      if (!isOwner) {
+        return true;
+      }
+      user = user.toLowerCase().trim();
+      if (user !== "") {
+        dry.appendMessage("Rekt", `${user} got rekt`);
+        rekt.add(user);
+        saveRekts();
+      }
+      else {
+        dry.appendMessage("Error", "Can't rekt an empty string");
+      }
+      return true;
+    }
+
+    unrekt(user) {
+      if (!isOwner) {
+        return true;
+      }
+      user = user.toLowerCase().trim();
+      if (user !== "") {
+        dry.appendMessage("Unrekt", `${user} got unrekt`);
+        rekt.delete(user);
+        saveRekts();
+      }
+      else {
+        dry.appendMessage("Error", "Can't unrekt an empty string");
+      }
+      return true;
+    }
+
+    showrekts() {
+      if (!isOwner) {
+        return true;
+      }
+      dry.unsafeWindow.alert(
+        `Rekt boys:\n${Array.from(rekt.values()).filter(el => el !== whitePurge)}`
+      );
+      return true;
+    }
+
+    killwhites() {
+      if (!isOwner) {
         return;
       }
-      isOwner(isOwner = true);
+      if (rekt.has(whitePurge)) {
+        dry.appendMessage("Purgatory", "Whiteposting is allowed now");
+        rekt.delete(whitePurge);
+      }
+      else {
+        dry.appendMessage("Purgatory", "All white posters will be timed out");
+        rekt.add(whitePurge);
+      }
+      saveRekts();
+    }
+  }();
+});
 
-      (function() {
-        try {
-          let el = $e("menu", {
-            id: "dolos_cuckmenu",
-            type: "context"
-          });
-          let mi = $e("menuitem", null, "Select all files from this user");
-          el.appendChild(mi);
-          let user = null;
-          const fl = $$("#file_list, #volanail-list");
-          fl.forEach(list => {
-            list.addEventListener("contextmenu", function(e) {
-              const file = getFileFromEvent(e);
-              if (!file) {
-                return;
-              }
-              user = file.tags.user || file.tags.nick;
-              this.textContent = `Select all files from user '${user}'`;
-              user = user.toLowerCase();
-            }.bind(mi));
-          });
-          mi.addEventListener("click", function() {
-            dry.exts.filelistManager.filelist.filelist.forEach(
-              e => e.setData("checked", (e.tags.user || e.tags.nick).toLowerCase() === user));
-          });
+dry.once("load", () => {
+  let last_file = null;
+  const ownerFiles = new WeakMap();
 
-          mi = $e("menuitem", null, "Select all");
-          mi.addEventListener("click", function() {
-            dry.exts.filelistManager.filelist.filelist.forEach(
-              e => e.setData("checked", true));
-          });
-          el.appendChild(mi);
+  const find_file = function(file) {
+    const {id} = file;
+    const fl = dry.exts.filelistManager.filelist.filelist;
+    for (let i = 0; i < fl.length; ++i) {
+      if (fl[i].id === id) {
+        return { idx: i, item: fl[i] };
+      }
+    }
+    return null;
+  };
+  const getFileFromEvent = function(e) {
+    let file; let fileElement = e.target;
+    while (!file) {
+      if (!fileElement) {
+        return null;
+      }
+      file = ownerFiles.get(fileElement);
+      fileElement = fileElement.parentElement;
+    }
+    return file;
+  };
+  const file_click = function(e) {
+    if (!e.target.classList.contains("filetype")) {
+      return undefined;
+    }
+    const file = getFileFromEvent(e);
+    if (!file) {
+      return undefined;
+    }
+    e.stopPropagation();
+    e.preventDefault();
+    if (!e.shiftKey) {
+      file.setData("checked", !file.getData("checked"));
+      last_file = file;
+      return false;
+    }
+    if (!last_file) {
+      return false;
+    }
+    let lf = find_file(last_file); let cf = find_file(file);
+    if (!lf || !cf) {
+      return false;
+    }
+    [lf, cf] = [lf.idx, cf.idx];
+    if (cf > lf) {
+      [lf, cf] = [cf, lf];
+    }
+    const files = dry.exts.filelistManager.filelist.filelist.slice(cf, lf);
+    const checked = file.getData("checked");
+    files.forEach(el => {
+      el.setData("checked", !checked);
+    });
+    file.setData("checked", !checked);
+    last_file.setData("checked", !checked);
+    return false;
+  };
+  const prepare_file = function(file) {
+    try {
+      if (!file.id) {
+        return;
+      }
+      if (file.tags && (file.tags.user || file.tags.nick) &&
+          rekt.has((file.tags.user || file.tags.nick).toLowerCase().trim())) {
+        dry.exts.connection.call("timeoutFile", file.id, 3600 * 24);
+        dry.exts.connection.call("deleteFiles", [file.id]);
+      }
+      const fe = file.dom.fileElement;
+      if (ownerFiles.has(fe)) {
+        return;
+      }
+      const tags = Object.assign(file.tags, file.tags.nick ?
+        {white: true} :
+        {green: true});
+      file.dom.setTags(tags);
+      fe.addEventListener("click", file_click, true);
+      fe.setAttribute("contextmenu", "dolos_cuckmenu");
+      ownerFiles.set(fe, file);
+      //volanail support
+    }
+    catch (ex) {
+      console.error(ex);
+    }
+  };
 
-          mi = $e("menuitem", null, "Select none");
-          mi.addEventListener("click", function() {
-            dry.exts.filelistManager.filelist.filelist.forEach(
-              e => e.setData("checked", false));
-          });
-          el.appendChild(mi);
+  const createButtons = function(isOwnerOrAdminOrJanitor) {
+    if (isOwner || !isOwnerOrAdminOrJanitor) {
+      return;
+    }
+    isOwner = true;
 
-          mi = $e("menuitem", null, "Invert selection");
-          mi.addEventListener("click", function() {
-            dry.exts.filelistManager.filelist.filelist.forEach(e => {
-              e.setData("checked", !e.getData("checked"));
-            });
-          });
-          el.appendChild(mi);
+    try {
+      const cont = $("#upload_container");
+      const btnel = $e("label", {
+        for: "dolos_delete_input",
+        id: "dolos_deleteButton",
+        class: "button",
+        style: "margin-right: 0.5em",
+      });
+      btnel.appendChild($e("span", {
+        class: "icon-trash"
+      }));
+      btnel.appendChild($e("span", {
+        class: "on_small_header"
+      }, "Delete"));
+      cont.insertBefore(btnel, cont.firstChild);
+      btnel.addEventListener("click", function() {
+        const ids = selected();
+        dry.exts.connection.call("deleteFiles", ids);
+      });
 
-          mi = $e("menuitem", null, "Select dupes");
-          mi.addEventListener("click", function() {
-            let known = new Set();
-            dry.exts.filelistManager.filelist.filelist.forEach(e => {
-              let k = `${e.size}/${e.name}`;
-              if (known.has(k)) {
-                e.setData("checked", true);
-                console.log("marked " + k + " for doom");
-              }
-              else {
-                known.add(k);
-                e.setData("checked", false);
-              }
-            });
-          });
-          el.appendChild(mi);
-
-          mi = $e("menuitem", null, "Select all files uploaded by not logged users");
-          mi.addEventListener("click", function() {
-            dry.exts.filelistManager.filelist.filelist.forEach(e => {
-              e.setData("checked", !!e.tags.nick);
-            });
-          });
-          el.appendChild(mi);
-
-          if (dry.exts.user.info.admin) {
-            let ip = null;
-            mi = $e("menuitem", null, `Select all files with users's IP`);
-            fl.forEach(list => {
-              list.addEventListener("contextmenu", function(e) {
-                const file = getFileFromEvent(e);
-                if (!file) {
-                  return;
-                }
-                ip = file.tags.ip;
-                this.textContent = `Select all files with IP of '${ip}'`;
-              }.bind(mi));
-            });
-            mi.addEventListener("click", function() {
-              dry.exts.filelistManager.filelist.filelist.forEach(e => {
-                e.setData("checked", e.tags.ip === ip);
-              });
-            });
-            el.appendChild(mi);
+      const el = $e("menu", {
+        id: "dolos_cuckmenu",
+        type: "context"
+      });
+      let mi = $e("menuitem", null, "Select All Files From User");
+      el.appendChild(mi);
+      let user = null;
+      const lists = $$("#file_list, #volanail-list");
+      for (const list of lists) {
+        list.addEventListener("contextmenu", function(e) {
+          const file = getFileFromEvent(e);
+          if (!file) {
+            this.style.display = "none";
+            return;
           }
-          document.body.appendChild(el);
+          user = file.tags.user || file.tags.nick;
+          if (!user) {
+            this.style.display = "none";
+            return;
+          }
+          this.textContent = `Select All Files From '${user}'`;
+          user = user.toLowerCase();
+          this.style.display = "";
+        }.bind(mi));
+      }
+      mi.addEventListener("click", function() {
+        dry.exts.filelistManager.filelist.filelist.forEach(
+          e => e.setData("checked",
+            (e.tags.user || e.tags.nick).toLowerCase() === user));
+      });
+
+      mi = $e("menuitem", null, "Select All");
+      mi.addEventListener("click", function() {
+        dry.exts.filelistManager.filelist.filelist.forEach(
+          e => e.setData("checked", true));
+      });
+      el.appendChild(mi);
+
+      mi = $e("menuitem", null, "Select None");
+      mi.addEventListener("click", function() {
+        dry.exts.filelistManager.filelist.filelist.forEach(
+          e => e.setData("checked", false));
+      });
+      el.appendChild(mi);
+
+      mi = $e("menuitem", null, "Invert Selection");
+      mi.addEventListener("click", function() {
+        dry.exts.filelistManager.filelist.filelist.forEach(e => {
+          e.setData("checked", !e.getData("checked"));
+        });
+      });
+      el.appendChild(mi);
+
+      mi = $e("menuitem", null, "Select Dupes");
+      mi.addEventListener("click", function() {
+        const known = new Set();
+        dry.exts.filelistManager.filelist.filelist.forEach(e => {
+          const k = `${e.size}/${e.name}`;
+          if (known.has(k)) {
+            e.setData("checked", true);
+            console.log(`marked ${k} for doom`);
+          }
+          else {
+            known.add(k);
+            e.setData("checked", false);
+          }
+        });
+      });
+      el.appendChild(mi);
+
+      mi = $e("menuitem", null, "Select All White Name Files");
+      mi.addEventListener("click", function() {
+        dry.exts.filelistManager.filelist.filelist.forEach(e => {
+          e.setData("checked", !!e.tags.nick);
+        });
+      });
+      el.appendChild(mi);
+
+      if (dry.exts.user.info.admin) {
+        let ip = null;
+        mi = $e("menuitem", null, "Select All Files For IP");
+        for (const list of lists) {
+          list.addEventListener("contextmenu", function(e) {
+            const file = getFileFromEvent(e);
+            if (!file) {
+              this.style.display = "none";
+              return;
+            }
+            ip = file.tags.ip || null;
+            if (!ip) {
+              this.style.display = "none";
+            }
+            this.textContent = `Select All Files For IP '${ip}'`;
+            this.style.display = "";
+          }.bind(mi));
         }
-        catch (ex) {
-          console.error(ex);
-        }
-      })();
-      dry.exts.filelistManager.on("fileAdded", prepare_file);
-      dry.exts.filelistManager.on("fileUpdated", prepare_file);
-      dry.exts.filelistManager.filelist.filelist.forEach(prepare_file);
-    };
-    dry.exts.user.on("info_owner", createButtons);
-    dry.exts.user.on("info_admin", createButtons);
-    dry.exts.user.on("info_janitor", createButtons);
-  });
+        mi.addEventListener("click", function() {
+          dry.exts.filelistManager.filelist.filelist.forEach(e => {
+            e.setData("checked", e.tags.ip === ip);
+          });
+        });
+        el.appendChild(mi);
+      }
+      document.body.appendChild(el);
+    }
+    catch (ex) {
+      console.error(ex);
+    }
+
+    dry.exts.filelistManager.on("fileAdded", prepare_file);
+    dry.exts.filelistManager.on("fileUpdated", prepare_file);
+    dry.exts.filelistManager.on("nail_init", file => {
+      const te = file.dom.vnThumbElement;
+      if (!te) {
+        console.warn("got a nail, but no nail");
+        return;
+      }
+      te.setAttribute("contextmenu", "dolos_cuckmenu");
+      ownerFiles.set(te, file);
+    });
+    dry.exts.filelistManager.filelist.filelist.forEach(prepare_file);
+  };
+
+  dry.exts.user.on("info_owner", createButtons);
+  dry.exts.user.on("info_admin", createButtons);
+  dry.exts.user.on("info_janitor", createButtons);
+});
 })();

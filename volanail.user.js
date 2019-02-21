@@ -16,6 +16,7 @@
 /* jslint strict:global,browser:true,devel:true */
 
 "use strict";
+
 console.log("running", GM.info.script.name, GM.info.script.version);
 
 const SHEET = `
@@ -103,8 +104,8 @@ const SHEET = `
 }
 `;
 
-const ICON_ERROR = "https://cdn.rawgit.com/RealDolos/assets/5cd4f6f4c349e32e778da55a41928c0309ac4fd4/error.svg";
-const ICON_LOADING = "https://cdn.rawgit.com/RealDolos/assets/5cd4f6f4c349e32e778da55a41928c0309ac4fd4/waiting.svg";
+const ICON_ERROR = "https://cdn.jsdelivr.net/gh/RealDolos/assets@5cd4f6f4c349e32e778da55a41928c0309ac4fd4/error.svg";
+const ICON_LOADING = "https://cdn.jsdelivr.net/gh/RealDolos/assets@5cd4f6f4c349e32e778da55a41928c0309ac4fd4/waiting.svg";
 const apool = new class AnimationPool {
   constructor() {
     this.items = [];
@@ -172,47 +173,47 @@ let file_list;
 let thumb_list;
 
 (function() {
-  const sheet = $e("style", {id: "volanail-sheet"}, SHEET);
-  document.body.appendChild(sheet);
+const sheet = $e("style", {id: "volanail-sheet"}, SHEET);
+document.body.appendChild(sheet);
 
-  const cont = $("#upload_container");
-  button = $e("label", {
-    for: "volanail-button",
-    id: "volanail-button",
-    class: "button volanail-button"
+const cont = $("#upload_container");
+button = $e("label", {
+  for: "volanail-button",
+  id: "volanail-button",
+  class: "button volanail-button"
+});
+button.appendChild($e("span", {
+  class: "icon-vnthumb"
+}));
+button.appendChild($e("span", {
+  class: "on_small_header"
+}/*, Thumbnail"*/));
+cont.insertBefore(button, cont.firstChild);
+file_list = $("#file_list");
+thumb_list = $e("div", {id: "volanail-list"});
+thumb_list.style.display = "none";
+file_list.parentElement.insertBefore(thumb_list, file_list);
+
+const files_frame = $("#files_frame");
+let oldCount = 0;
+const rule = Array.from(sheet.sheet.cssRules).find(
+  e => e && e.selectorText === ".volanail-thumb" ? e : null);
+const update_columns = () => {
+  apool.schedule(null, () => {
+    const columnCount = Math.max(2, Math.floor(files_frame.clientWidth / 220));
+    if (oldCount === columnCount) {
+      return;
+    }
+    oldCount = columnCount;
+    rule.style.width = `calc(100% / ${columnCount} - 12px - 1ex)`;
   });
-  button.appendChild($e("span", {
-    class: "icon-vnthumb"
-  }));
-  button.appendChild($e("span", {
-    class: "on_small_header"
-  }/*, Thumbnail"*/));
-  cont.insertBefore(button, cont.firstChild);
-  file_list = $("#file_list");
-  thumb_list = $e("div", {id: "volanail-list"});
-  thumb_list.style.display = "none";
-  file_list.parentElement.insertBefore(thumb_list, file_list);
+};
 
-  const files_frame = $("#files_frame");
-  let oldCount = 0;
-  const rule = Array.from(sheet.sheet.cssRules).find(
-    e => e && e.selectorText === ".volanail-thumb" ? e : null);
-  const update_columns = () => {
-    apool.schedule(null, () => {
-      const columnCount = Math.max(2, Math.floor(files_frame.clientWidth / 220));
-      if (oldCount === columnCount) {
-        return;
-      }
-      oldCount = columnCount;
-      rule.style.width = `calc(100% / ${columnCount} - 12px - 1ex)`;
-    });
-  };
-
-  // Easier to observe mutations than hook into lain codes
-  new MutationObserver(() => update_columns()).observe(files_frame, {
-    attributes: true
-  });
-  update_columns();
+// Easier to observe mutations than hook into lain codes
+new MutationObserver(() => update_columns()).observe(files_frame, {
+  attributes: true
+});
+update_columns();
 })();
 
 const force_update = () => {
@@ -557,7 +558,7 @@ dry.once("load", () => {
         else if (!f.visible && parent) {
           parent.removeChild(el);
         }
-        f.emit("thumb_added");
+        dry.exts.filelistManager.emit("nail_init", f);
       });
       loader.refresh();
     }
