@@ -106,6 +106,7 @@ const SHEET = `
 
 const ICON_ERROR = "https://cdn.jsdelivr.net/gh/RealDolos/assets@5cd4f6f4c349e32e778da55a41928c0309ac4fd4/error.svg";
 const ICON_LOADING = "https://cdn.jsdelivr.net/gh/RealDolos/assets@5cd4f6f4c349e32e778da55a41928c0309ac4fd4/waiting.svg";
+
 const apool = new class AnimationPool {
   constructor() {
     this.items = [];
@@ -250,8 +251,7 @@ class Thumbnail {
     container.appendChild(infos);
     container.doLoad = () => {
       try {
-        return apool.schedule(
-          null, () => this.doLoadInternal(file).catch(console.error));
+        return this.doLoadInternal(file).catch(console.error);
       }
       finally {
         delete this.container.doLoad;
@@ -285,6 +285,9 @@ class Thumbnail {
 
   async doLoadInternal(file) {
     try {
+      if (file.uploadi || !file.id) {
+        return;
+      }
       await this.addInfo(await dry.exts.info.getFileInfo(file.id));
     }
     catch (ex) {
@@ -294,11 +297,10 @@ class Thumbnail {
   }
 
   addInfo(info) {
-    return new Promise((resolve, reject) => apool.schedule(
-      this, this.addInfoAsPromised, info, resolve, reject));
+    return apool.schedule(this, this.addInfoAsPromised, info);
   }
 
-  addInfoForGeneric(info, ip, cls, resolve) {
+  addInfoForGeneric(info, ip, cls) {
     const fmt = $e(
       "div",
       null,
@@ -314,10 +316,9 @@ class Thumbnail {
     img.classList.add("volanail-media");
     img.appendChild(icon);
     this.setMedia(img);
-    resolve();
   }
 
-  addInfoForThumb(info, ip, name, resolve, reject) {
+  async addInfoForThumb(info, ip, name) {
     if (info.image) {
       const format = info.image.format ? `${info.image.format} - ` : "";
       const fmt = $e(
@@ -332,18 +333,20 @@ class Thumbnail {
     const src = dry.unsafeWindow.makeAssetUrl(info.id, name, info.thumb.server);
     const img = new Image();
     img.classList.add("volanail-media");
-    img.onerror = error => {
-      reject({error, src});
-    };
-    img.onload = () => {
-      this.setMedia(img);
-      resolve();
-    };
-    setTimeout(() => reject("timeout"), 10000);
     img.src = src;
+    await new Promise((resolve, reject) => {
+      img.onerror = error => {
+        reject({error, src});
+      };
+      img.onload = () => {
+        this.setMedia(img);
+        resolve();
+      };
+      setTimeout(() => reject("timeout"), 10000);
+    });
   }
 
-  addInfoForVideoThumb(info, ip, name, resolve, reject) {
+  async addInfoForVideoThumb(info, ip, name) {
     if (info.video) {
       const fmt = $e(
         "div",
@@ -370,25 +373,14 @@ class Thumbnail {
       class: "volanail-media",
       src
     });
+    video.loop = true;
+    video.muted = true;
 
     function setStart() {
       // work around "blank" start frames
       video.currentTime = video.duration > 0.1 ? video.duration / 3 : 0;
     }
 
-    video.onloadeddata = () => {
-      this.setMedia(video);
-      setStart();
-      resolve();
-    };
-    video.onstalled = () => {
-      reject(src);
-    };
-    video.onerror = () => {
-      reject(src);
-    };
-    video.loop = true;
-    video.muted = true;
     video.onmouseover = () => {
       video.currentTime = 0;
       video.play();
@@ -397,36 +389,48 @@ class Thumbnail {
       video.pause();
       setStart();
     };
-    setTimeout(() => reject(`timeout ${src}`), 10000);
+
+    await new Promise((resolve, reject) => {
+      video.onloadeddata = () => {
+        this.setMedia(video);
+        setStart();
+        resolve();
+      };
+      video.onstalled = () => {
+        reject(src);
+      };
+      video.onerror = () => {
+        reject(src);
+      };
+      setTimeout(() => reject(`timeout ${src}`), 10000);
+    });
   }
 
-  addInfoAsPromised(info, resolve, reject) {
-    try {
-      this.icon.firstChild.className = this.icon.icon.firstChild.className;
-      delete this.icon.icon;
-      let ip;
-      if (info.uploader_ip) {
-        ip = $e("span", {class: "tag_key_ip"}, info.uploader_ip);
-      }
-      const {thumb = {}} = info;
-      const {type: ttype = "", name = "thumb"} = thumb;
-      if (ttype.startsWith("image/")) {
-        this.addInfoForThumb(info, ip, name, resolve, reject);
-        return;
-      }
-      if (ttype.startsWith("video/")) {
-        this.addInfoForVideoThumb(info, ip, name, resolve, reject);
-        return;
-      }
-      if (["thumb", "video_thumb"].some(a => this.file.assets.includes(a))) {
-        throw new Error("No thumb");
-      }
-      this.addInfoForGeneric(
-        info, ip, this.icon.firstChild.className, resolve, reject);
+  async addInfoAsPromised(info) {
+    this.icon.firstChild.className = this.icon.icon.firstChild.className;
+    delete this.icon.icon;
+    let ip;
+    if (info.uploader_ip) {
+      ip = $e("span", {class: "tag_key_ip"}, info.uploader_ip);
     }
-    catch (ex) {
-      reject(ex);
+    const {thumb = {}} = info;
+    const {type: ttype = "", name = "thumb"} = thumb;
+
+    if (ttype.startsWith("image/")) {
+      await this.addInfoForThumb(info, ip, name);
+      return;
     }
+
+    if (ttype.startsWith("video/")) {
+      await this.addInfoForVideoThumb(info, ip, name);
+      return;
+    }
+
+    if (["thumb", "video_thumb"].some(a => this.file.assets.includes(a))) {
+      throw new Error("No thumb");
+    }
+
+    await this.addInfoForGeneric(info, ip, this.icon.firstChild.className);
   }
 }
 
@@ -439,7 +443,7 @@ const make_image = src => {
 
 const prepare_file = dry.exportFunction(file => {
   try {
-    if (file.upload || !file.id || !file.dom || file.dom.vnThumbElement) {
+    if (!file.id || !file.dom || file.dom.vnThumbElement) {
       return;
     }
     if (active) {
