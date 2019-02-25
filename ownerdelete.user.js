@@ -163,6 +163,16 @@ dry.once("load", () => {
     }
     return file;
   };
+  async function getInfo(id) {
+    let obj;
+    try {
+      obj = await dry.exts.info.getFileInfo(id);
+    }
+    catch (e) {
+      console.error(e);
+    }
+    return obj;
+  }
   const file_click = function(e) {
     if (!e.target.classList.contains("filetype")) {
       return undefined;
@@ -217,10 +227,13 @@ dry.once("load", () => {
         {white: true} :
         {green: true});
       file.dom.setTags(tags);
+      getInfo(file.id).then(result => {
+        const {checksum} = result;
+        file.checksum = checksum;
+      });
       fe.addEventListener("click", file_click, true);
       fe.setAttribute("contextmenu", "dolos_cuckmenu");
       ownerFiles.set(fe, file);
-      //volanail support
     }
     catch (ex) {
       console.error(ex);
@@ -310,10 +323,10 @@ dry.once("load", () => {
       mi.addEventListener("click", function() {
         const known = new Set();
         dry.exts.filelistManager.filelist.filelist.forEach(e => {
-          const k = `${e.size}/${e.name}`;
+          const k = e.checksum;
           if (known.has(k)) {
             e.setData("checked", true);
-            console.log(`marked ${k} for doom`);
+            console.log(`marked ${e.name} from ${e.tags.user || e.tags.nick} for doom`);
           }
           else {
             known.add(k);
