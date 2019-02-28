@@ -1,6 +1,6 @@
 @-moz-document domain("volafile.org") {
 html {
-    --main-bg-color: #333333;
+    --main-bg-color: #303030;
     --snd-bg-color: #101010;
     --input-color: #131313;
     --input-disabled-color: #8e8e8e;
@@ -9,16 +9,17 @@ html {
     --slider-color: #707070;
     --hi-color: #282828;
     --hi-hover-color: #505050;
-    --file-list-color: #282828;
+    --file-list-color: #242424;
     --file-color: #3a3a3a;
     --file-hover-color: #505050;
     --header-hi-color: #404040;
-    --tag-color: rgba(160, 150, 150, 0.3);
+    --tag-color: rgba(164, 159, 159, .3);
+    --tag-color-nick: rgba(140, 170, 121, .5);
     --button-color: #dcdcdc;
     --button-hi-color: #ececec;
     --button-light-color: #666666;
     --button-light-hi-color: #777777;
-    --channel-color: #d880fc;
+    --channel-color: #bd7fd7;
     --context-bg-color: #444444;
 }
 
@@ -350,8 +351,14 @@ hr {
 }
 
 .file_tag {
+    padding-left: 0.5ex;
+    padding-right: 0.5ex;
     background-color: var(--tag-color) !important;
 }
+.file_tag.tag_key_user {
+    background-color: var(--tag-color-nick) !important;
+}
+
 .button:not(.gallery_button),
 input[type=submit] {
     background-color: var(--button-color);
@@ -490,6 +497,11 @@ body {
 
 .chat_message.staff .username {
     color: #fc807e;
+}
+
+.chat_message.staff:not(.profile) {
+    opacity: 0.7;
+    font-size: small;
 }
 
 .chat_message.staff:not(.user) .username {
