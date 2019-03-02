@@ -7,10 +7,12 @@
 // @match        https://volafile.org/r/*
 // @icon         https://volafile.org/favicon.ico
 // @require      https://cdn.jsdelivr.net/gh/volafiled/volascripts@a9c0424e5498deea9fd437c15b2137c3bec07c61/dry.min.js
+// @require      https://cdn.jsdelivr.net/gh/volafiled/node-parrot@acb622d5d9af34f0de648385e6ab4d2411373037/parrot/finally.min.js
+// @require      https://cdn.jsdelivr.net/gh/volafiled/node-parrot@acb622d5d9af34f0de648385e6ab4d2411373037/parrot/pool.min.js
 // @grant        none
 // @run-at       document-start
 // ==/UserScript==
-/* globals dry */
+/* globals dry, PromisePool */
 (function() {
 "use strict";
 
@@ -141,7 +143,15 @@ dry.once("dom", () => {
 dry.once("load", () => {
   let last_file = null;
   const ownerFiles = new WeakMap();
+  const pool = new PromisePool(6);
+  let checksums;
 
+  (function() {
+    checksums = JSON.parse(sessionStorage.getItem("ownerChecksums")) || {};
+  })();
+  const save_checksums = function() {
+    sessionStorage.setItem("ownerChecksums", JSON.stringify(checksums));
+  };
   const find_file = function(file) {
     const {id} = file;
     const fl = dry.exts.filelistManager.filelist.filelist;
@@ -163,15 +173,21 @@ dry.once("load", () => {
     }
     return file;
   };
-  async function getInfo(id) {
-    let obj;
+  async function getInfo(file) {
     try {
-      obj = await dry.exts.info.getFileInfo(id);
+      if (file.id in checksums && !file.checksum) {
+        file.checksum = checksums[file.id];
+        return;
+      }
+      const info = await dry.exts.info.getFileInfo(file.id);
+      const {checksum} = info;
+      checksums[file.id] = checksum;
+      file.checksum = checksum;
+      save_checksums();
     }
     catch (e) {
       console.error(e);
     }
-    return obj;
   }
   const file_click = function(e) {
     if (!e.target.classList.contains("filetype")) {
@@ -227,10 +243,7 @@ dry.once("load", () => {
         {white: true} :
         {green: true});
       file.dom.setTags(tags);
-      getInfo(file.id).then(result => {
-        const {checksum} = result;
-        file.checksum = checksum;
-      });
+      pool.schedule(getInfo, file);
       fe.addEventListener("click", file_click, true);
       fe.setAttribute("contextmenu", "dolos_cuckmenu");
       ownerFiles.set(fe, file);
@@ -321,6 +334,10 @@ dry.once("load", () => {
 
       mi = $e("menuitem", null, "Select Dupes");
       mi.addEventListener("click", function() {
+        if (pool.total > 0) {
+          dry.unsafeWindow.alert("Data to perform this operation is not ready yet! Try again soon.");
+          return;
+        }
         const known = new Set();
         dry.exts.filelistManager.filelist.filelist.forEach(e => {
           const k = e.checksum;
@@ -377,6 +394,12 @@ dry.once("load", () => {
 
     dry.exts.filelistManager.on("fileAdded", prepare_file);
     dry.exts.filelistManager.on("fileUpdated", prepare_file);
+    dry.exts.filelistManager.on("fileRemoved", file => {
+      if (file.id in checksums) {
+        delete checksums[file.id];
+        save_checksums();
+      }
+    });
     dry.exts.filelistManager.on("nail_init", file => {
       const te = file.dom.vnThumbElement;
       if (!te) {
