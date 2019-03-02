@@ -144,11 +144,8 @@ dry.once("load", () => {
   let last_file = null;
   const ownerFiles = new WeakMap();
   const pool = new PromisePool(6);
-  let checksums;
+  const checksums = JSON.parse(sessionStorage.getItem("ownerChecksums")) || {};
 
-  (function() {
-    checksums = JSON.parse(sessionStorage.getItem("ownerChecksums")) || {};
-  })();
   const save_checksums = function() {
     sessionStorage.setItem("ownerChecksums", JSON.stringify(checksums));
   };
