@@ -1,16 +1,18 @@
 // ==UserScript==
 // @name         Mod EVERYTHING better, because reasons!
 // @namespace    http://not.jew.dance/
-// @version      2
+// @version      3
 // @description  try to take over the world!
 // @author       You
 // @match        https://volafile.org/r/*
 // @icon         https://volafile.org/favicon.ico
 // @require      https://cdn.jsdelivr.net/gh/volafiled/volascripts@a9c0424e5498deea9fd437c15b2137c3bec07c61/dry.min.js
+// @require      https://cdn.jsdelivr.net/gh/volafiled/node-parrot@acb622d5d9af34f0de648385e6ab4d2411373037/parrot/finally.min.js
+// @require      https://cdn.jsdelivr.net/gh/volafiled/node-parrot@acb622d5d9af34f0de648385e6ab4d2411373037/parrot/pool.min.js
 // @grant        none
 // @run-at       document-start
 // ==/UserScript==
-/* globals dry */
+/* globals dry, PromisePool */
 (function() {
 "use strict";
 
@@ -32,6 +34,34 @@ function $e(tag, attrs, text) {
     rv.textContent = text;
   }
   return rv;
+}
+
+function debounce(fn, to) {
+  if (fn.length) {
+    throw new Error("cannot have params");
+  }
+  to = to || 100;
+  let timer;
+
+  const run = function() {
+    timer = 0;
+    fn.call(this);
+  };
+
+  return function() {
+    if (timer) {
+      return;
+    }
+    timer = setTimeout(run.bind(this), to);
+  };
+}
+
+function timeout(delay) {
+  return new Promise((_, rej) => {
+    setTimeout(() => {
+      rej(new Error(`Timeout of ${delay} milliseconds got reached.`));
+    }, delay);
+  });
 }
 
 const $ = document.querySelector.bind(document);
@@ -141,7 +171,20 @@ dry.once("dom", () => {
 dry.once("load", () => {
   let last_file = null;
   const ownerFiles = new WeakMap();
+  const pool = new PromisePool(6);
 
+  const checksums = (function() {
+    const rv = sessionStorage.getItem("ownerChecksums");
+    try {
+      return new Map(rv && JSON.parse(rv));
+    }
+    catch (e) {
+      return new Map();
+    }
+  }());
+  const save_checksums = debounce(function() {
+    sessionStorage.setItem("ownerChecksums", JSON.stringify(Array.from(checksums)));
+  }, 1000);
   const find_file = function(file) {
     const {id} = file;
     const fl = dry.exts.filelistManager.filelist.filelist;
@@ -163,6 +206,18 @@ dry.once("load", () => {
     }
     return file;
   };
+  async function getInfo(file) {
+    try {
+      const info = await Promise.race([dry.exts.info.getFileInfo(file.id), timeout(5000)]);
+      const {checksum} = info;
+      checksums.set(file.id, checksum);
+      file.checksum = checksum;
+    }
+    catch (e) {
+      console.error(e);
+      file.checksum = false;
+    }
+  }
   const file_click = function(e) {
     if (!e.target.classList.contains("filetype")) {
       return undefined;
@@ -217,10 +272,18 @@ dry.once("load", () => {
         {white: true} :
         {green: true});
       file.dom.setTags(tags);
+      if (!file.checksum) {
+        if (checksums.has(file.id)) {
+          file.checksum = checksums.get(file.id);
+        }
+        else {
+          pool.schedule(getInfo, file);
+          save_checksums();
+        }
+      }
       fe.addEventListener("click", file_click, true);
       fe.setAttribute("contextmenu", "dolos_cuckmenu");
       ownerFiles.set(fe, file);
-      //volanail support
     }
     catch (ex) {
       console.error(ex);
@@ -308,12 +371,20 @@ dry.once("load", () => {
 
       mi = $e("menuitem", null, "Select Dupes");
       mi.addEventListener("click", function() {
+        if (pool.total > 0) {
+          dry.unsafeWindow.alert("Data to perform this operation is not ready yet! Try again soon.");
+          return;
+        }
         const known = new Set();
         dry.exts.filelistManager.filelist.filelist.forEach(e => {
-          const k = `${e.size}/${e.name}`;
+          const k = e.checksum;
+          if (!k) {
+            // just skip the iteration if checkusm isn't present
+            return;
+          }
           if (known.has(k)) {
             e.setData("checked", true);
-            console.log(`marked ${k} for doom`);
+            console.log(`marked ${e.name} from ${e.tags.user || e.tags.nick} for doom`);
           }
           else {
             known.add(k);
@@ -364,6 +435,9 @@ dry.once("load", () => {
 
     dry.exts.filelistManager.on("fileAdded", prepare_file);
     dry.exts.filelistManager.on("fileUpdated", prepare_file);
+    dry.exts.filelistManager.on("fileRemoved", file => {
+      checksums.delete(file.id);
+    });
     dry.exts.filelistManager.on("nail_init", file => {
       const te = file.dom.vnThumbElement;
       if (!te) {
