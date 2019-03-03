@@ -36,6 +36,34 @@ function $e(tag, attrs, text) {
   return rv;
 }
 
+function debounce(fn, to) {
+  if (fn.length) {
+    throw new Error("cannot have params");
+  }
+  to = to || 100;
+  let timer;
+
+  const run = function() {
+    timer = 0;
+    fn.call(this);
+  };
+
+  return function() {
+    if (timer) {
+      return;
+    }
+    timer = setTimeout(run.bind(this), to);
+  };
+}
+
+function timeout(delay) {
+  return new Promise((_, rej) => {
+    setTimeout(() => {
+      rej(new Error(`Timeout of ${delay} milliseconds got reached.`));
+    }, delay);
+  });
+}
+
 const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
 let isOwner = false;
@@ -144,11 +172,20 @@ dry.once("load", () => {
   let last_file = null;
   const ownerFiles = new WeakMap();
   const pool = new PromisePool(6);
-  const checksums = JSON.parse(sessionStorage.getItem("ownerChecksums")) || {};
 
-  const save_checksums = function() {
-    sessionStorage.setItem("ownerChecksums", JSON.stringify(checksums));
-  };
+  const checksums = (function() {
+    let rv = sessionStorage.getItem("ownerChecksums");
+    rv = JSON.parse(rv || "[]");
+    try {
+      return new Map(rv);
+    }
+    catch (e) {
+      return new Map();
+    }
+  }());
+  const save_checksums = debounce(function() {
+    sessionStorage.setItem("ownerChecksums", JSON.stringify(Array.from(checksums)));
+  }, 1000);
   const find_file = function(file) {
     const {id} = file;
     const fl = dry.exts.filelistManager.filelist.filelist;
@@ -172,18 +209,14 @@ dry.once("load", () => {
   };
   async function getInfo(file) {
     try {
-      if (file.id in checksums && !file.checksum) {
-        file.checksum = checksums[file.id];
-        return;
-      }
-      const info = await dry.exts.info.getFileInfo(file.id);
+      const info = await Promise.race([dry.exts.info.getFileInfo(file.id), timeout(5000)]);
       const {checksum} = info;
-      checksums[file.id] = checksum;
+      checksums.set(file.id, checksum);
       file.checksum = checksum;
-      save_checksums();
     }
     catch (e) {
       console.error(e);
+      file.checksum = false;
     }
   }
   const file_click = function(e) {
@@ -240,7 +273,15 @@ dry.once("load", () => {
         {white: true} :
         {green: true});
       file.dom.setTags(tags);
-      pool.schedule(getInfo, file);
+      if (!file.checksum) {
+        if (checksums.has(file.id)) {
+          file.checksum = checksums.get(file.id);
+        }
+        else {
+          pool.schedule(getInfo, file);
+          save_checksums();
+        }
+      }
       fe.addEventListener("click", file_click, true);
       fe.setAttribute("contextmenu", "dolos_cuckmenu");
       ownerFiles.set(fe, file);
@@ -338,6 +379,11 @@ dry.once("load", () => {
         const known = new Set();
         dry.exts.filelistManager.filelist.filelist.forEach(e => {
           const k = e.checksum;
+          if (!k) {
+            // reschedule failed item and skip to the next iteration
+            pool.schedule(getInfo, e);
+            return;
+          }
           if (known.has(k)) {
             e.setData("checked", true);
             console.log(`marked ${e.name} from ${e.tags.user || e.tags.nick} for doom`);
@@ -392,9 +438,8 @@ dry.once("load", () => {
     dry.exts.filelistManager.on("fileAdded", prepare_file);
     dry.exts.filelistManager.on("fileUpdated", prepare_file);
     dry.exts.filelistManager.on("fileRemoved", file => {
-      if (file.id in checksums) {
-        delete checksums[file.id];
-        save_checksums();
+      if (checksums.has(file.id)) {
+        checksums.delete(file.id);
       }
     });
     dry.exts.filelistManager.on("nail_init", file => {
