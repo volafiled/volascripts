@@ -174,10 +174,9 @@ dry.once("load", () => {
   const pool = new PromisePool(6);
 
   const checksums = (function() {
-    let rv = sessionStorage.getItem("ownerChecksums");
-    rv = JSON.parse(rv || "[]");
+    const rv = sessionStorage.getItem("ownerChecksums");
     try {
-      return new Map(rv);
+      return new Map(rv && JSON.parse(rv));
     }
     catch (e) {
       return new Map();
@@ -380,8 +379,7 @@ dry.once("load", () => {
         dry.exts.filelistManager.filelist.filelist.forEach(e => {
           const k = e.checksum;
           if (!k) {
-            // reschedule failed item and skip to the next iteration
-            pool.schedule(getInfo, e);
+            // just skip the iteration if checkusm isn't present
             return;
           }
           if (known.has(k)) {
@@ -438,9 +436,7 @@ dry.once("load", () => {
     dry.exts.filelistManager.on("fileAdded", prepare_file);
     dry.exts.filelistManager.on("fileUpdated", prepare_file);
     dry.exts.filelistManager.on("fileRemoved", file => {
-      if (checksums.has(file.id)) {
-        checksums.delete(file.id);
-      }
+      checksums.delete(file.id);
     });
     dry.exts.filelistManager.on("nail_init", file => {
       const te = file.dom.vnThumbElement;
