@@ -17,6 +17,22 @@ dry.once("load", () => {
   const room_title = document.getElementById("name_container");
   let room_owner = "";
   let jannies = "";
+  const parse_list = function(l) {
+    let parsed = "";
+    for (let i = 0, len = l.length; i < len; i++) {
+      if (i < len) {
+        parsed += `${l[i]}, `;
+      }
+      else {
+        parsed += `${l[i]}`;
+        return parsed;
+      }
+      if ((i + 1) % 3 === 0) {
+        parsed += "\n";
+      }
+    }
+    return parsed;
+  };
   dry.exts.connection.on("config", cfg => {
     if (typeof cfg.owner === "string" || room_owner) {
       room_owner = cfg.owner ? `${cfg.owner} is the room owner` : room_owner;
@@ -25,7 +41,7 @@ dry.once("load", () => {
       room_owner = "Room has no owner";
     }
     if (Array.isArray(cfg.janitors)) {
-      jannies = cfg.janitors.length ? `\nJanitors: ${cfg.janitors}` : "";
+      jannies = cfg.janitors.length ? `\nJanitors: ${parse_list(cfg.janitors)}` : "";
     }
     room_title.title = `${room_owner}${jannies}`;
   });
