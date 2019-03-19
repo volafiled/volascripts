@@ -20,7 +20,7 @@ dry.once("load", () => {
   const parse_list = function(l) {
     let parsed = "";
     for (let i = 0, len = l.length; i < len; i++) {
-      if (i < len) {
+      if (i < len - 1) {
         parsed += `${l[i]}, `;
       }
       else {
@@ -46,3 +46,4 @@ dry.once("load", () => {
     room_title.title = `${room_owner}${jannies}`;
   });
 });
+
