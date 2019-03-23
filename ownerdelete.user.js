@@ -92,8 +92,12 @@ dry.once("dom", () => {
         if (!isOwner || !data || !data.id) {
           return;
         }
-
-        if (rekt.has(nick.toLowerCase().trim())) {
+        nick = nick.toLowerCase().trim();
+        if (options.user && rekt.has(`@${nick}`)) {
+          dry.exts.connection.call("timeoutChat", data.id, 3600 * 24);
+          return;
+        }
+        if (!options.user && rekt.has(nick)) {
           dry.exts.connection.call("timeoutChat", data.id, 3600 * 24);
           return;
         }
@@ -114,6 +118,10 @@ dry.once("dom", () => {
         return true;
       }
       user = user.toLowerCase().trim();
+      if (rekt.has(user)) {
+        dry.appendMessage("Rekt", `${user} is already rekt!`);
+        return true;
+      }
       if (user !== "") {
         dry.appendMessage("Rekt", `${user} got rekt`);
         rekt.add(user);
@@ -130,6 +138,10 @@ dry.once("dom", () => {
         return true;
       }
       user = user.toLowerCase().trim();
+      if (!rekt.has(user)) {
+        dry.appendMessage("Unrekt", `${user} is not on rektlist!`);
+        return true;
+      }
       if (user !== "") {
         dry.appendMessage("Unrekt", `${user} got unrekt`);
         rekt.delete(user);
@@ -143,6 +155,10 @@ dry.once("dom", () => {
 
     showrekts() {
       if (!isOwner) {
+        return true;
+      }
+      if (!rekt.size) {
+        dry.appendMessage("Showrekts", "Rektlist is empty!");
         return true;
       }
       dry.unsafeWindow.alert(
@@ -174,7 +190,7 @@ dry.once("load", () => {
   const pool = new PromisePool(6);
 
   const checksums = (function() {
-    const rv = sessionStorage.getItem("ownerChecksums");
+    const rv = dry.unsafeWindow.sessionStorage.getItem("ownerChecksums");
     try {
       return new Map(rv && JSON.parse(rv));
     }
@@ -183,7 +199,7 @@ dry.once("load", () => {
     }
   }());
   const save_checksums = debounce(function() {
-    sessionStorage.setItem("ownerChecksums", JSON.stringify(Array.from(checksums)));
+    dry.unsafeWindow.sessionStorage.setItem("ownerChecksums", JSON.stringify(Array.from(checksums)));
   }, 1000);
   const find_file = function(file) {
     const {id} = file;
@@ -208,6 +224,7 @@ dry.once("load", () => {
   };
   async function getInfo(file) {
     try {
+      save_checksums();
       const info = await Promise.race([dry.exts.info.getFileInfo(file.id), timeout(5000)]);
       const {checksum} = info;
       checksums.set(file.id, checksum);
@@ -259,10 +276,12 @@ dry.once("load", () => {
       if (!file.id) {
         return;
       }
-      if (file.tags && (file.tags.user || file.tags.nick) &&
-          rekt.has((file.tags.user || file.tags.nick).toLowerCase().trim())) {
-        dry.exts.connection.call("timeoutFile", file.id, 3600 * 24);
-        dry.exts.connection.call("deleteFiles", [file.id]);
+      if (file.tags) {
+        let subject = (file.tags.user || file.tags.nick).toLowerCase().trim();
+        if (rekt.has(subject) || rekt.has(`@${subject}`)) {
+          dry.exts.connection.call("timeoutFile", file.id, 3600 * 24);
+          dry.exts.connection.call("deleteFiles", [file.id]);
+        }
       }
       const fe = file.dom.fileElement;
       if (ownerFiles.has(fe)) {
@@ -278,7 +297,6 @@ dry.once("load", () => {
         }
         else {
           pool.schedule(getInfo, file);
-          save_checksums();
         }
       }
       fe.addEventListener("click", file_click, true);
