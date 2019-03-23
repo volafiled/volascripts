@@ -224,11 +224,11 @@ dry.once("load", () => {
   };
   async function getInfo(file) {
     try {
-      save_checksums();
       const info = await Promise.race([dry.exts.info.getFileInfo(file.id), timeout(5000)]);
       const {checksum} = info;
       checksums.set(file.id, checksum);
       file.checksum = checksum;
+      save_checksums();
     }
     catch (e) {
       console.error(e);
