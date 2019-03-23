@@ -278,7 +278,11 @@ dry.once("load", () => {
       }
       if (file.tags) {
         let subject = (file.tags.user || file.tags.nick).toLowerCase().trim();
-        if (rekt.has(subject) || rekt.has(`@${subject}`)) {
+        if (rekt.has(subject)) {
+          dry.exts.connection.call("timeoutFile", file.id, 3600 * 24);
+          dry.exts.connection.call("deleteFiles", [file.id]);
+        }
+        if (rekt.has(`@${subject}`)) {
           dry.exts.connection.call("timeoutFile", file.id, 3600 * 24);
           dry.exts.connection.call("deleteFiles", [file.id]);
         }
