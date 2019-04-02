@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Unnotify reports
-// @version      6
+// @version      7
 // @description  because it's annoying
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -24,7 +24,7 @@ dry.once("dom", () => {
         options.notify = options.highlight = false;
         try {
           let text = message.map(e => e.value || "").join("");
-          let urls = message.map(e => e.href || "").join(" ");
+          let urls = message.map(e => e.href || (e.type === "room" && e.id) || "").join(" ");
           if (text.includes("BLACKLIST") && BLACK.test(text)) {
             console.error(text);
             return false;
