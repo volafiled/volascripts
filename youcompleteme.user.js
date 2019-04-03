@@ -3,11 +3,11 @@
 // @namespace    https://volafile.org/
 // @author       topkuk productions
 // @icon         https://volafile.org/favicon.ico
-// @version      7
+// @version      8
 // @description  So you can better ignore people
 // @match        https://volafile.org/r/*
 // @require      https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
-// @require      https://cdn.rawgit.com/RealDolos/volascripts/6879f622f45d2b79dd9f004754c28ffa0075a12b/dry.js
+// @require      https://cdn.jsdelivr.net/gh/RealDolos/volascripts@6879f622f45d2b79dd9f004754c28ffa0075a12b/dry.js
 // @run-at       document-idle
 // @grant        none
 // ==/UserScript==
@@ -19,9 +19,10 @@ console.log(
   "running", GM.info.script.name, GM.info.script.version, dry.version);
 
 const always = [
-  "RealDolos", "Dongmaster", "MercWMouth", "TheJIDF", "Kreg", "roboCOP", "Lain",
-  "Heisenb3rg", "Red", "dad", "auxo", "MoDChatbot", "bain", "lmmortal",
-  "someguy1992", "evilant", "Szeraton", "NEPTvola", "EffEff",
+  "RealDolos", "TheJIDF", "Kreg", "roboCOP", "Lain",
+  "Heisenb3rg", "Red", "dad", "MoDChatbot", "bain", "lmmortal",
+  "someguy1992", "Szeraton", "NineBanger87", "Starsheep",
+  "Dongmaster", "MercWMouth", "ptc",
 ];
 let never = new Set([
   "DavidBowie", "Record",
