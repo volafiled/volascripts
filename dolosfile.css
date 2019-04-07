@@ -526,6 +526,25 @@ body {
 .chat_message .username {
     color: rgb(170, 170, 180);
     float: none;
+    display: inline-flex;
+    line-height: 1;
+    align-items: baseline;
+}
+
+/* owner/janitor */
+.chat_message .username:not(.ban) > .icon-hammer {
+    color: white !important;
+    opacity: 0.25;
+    font-size: 50%;
+    padding: 0;
+    order: 99;
+}
+.chat_message .username .icon-hammer,
+.chat_message .username.ban {
+    align-self: flex-start;
+}
+.chat_message .username:not(.ban) > .icon-hammer:hover {
+    opacity: 0.6;
 }
 
 .chat_message.user .username {
