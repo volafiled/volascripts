@@ -17,22 +17,40 @@ dry.once("load", () => {
   const room_title = document.getElementById("name_container");
   let room_owner = "";
   let jannies = "";
-  const parse_list = function(l) {
-    let parsed = "";
-    for (let i = 0, len = l.length; i < len; i++) {
-      if (i < len - 1) {
-        parsed += `${l[i]}, `;
+  function splitIntoLines(input, len) {
+    // thanks, stacko! https://stackoverflow.com/a/6632755/8774873
+    len = len || 40;
+    let temp;
+    let lineSoFar = "";
+    const output = [];
+    const addWordOntoLine = function(line, word, i) {
+      if (line.length !== 0 && i > 1) {
+        line += ", ";
+      }
+      return line += word;
+    };
+    for (let i = 0; i < input.length;) {
+      // check if adding this word would exceed the len
+      temp = addWordOntoLine(lineSoFar, input[i], i);
+      if (temp.length > len) {
+        if (lineSoFar.length === 0) {
+          lineSoFar = temp;     // force to put at least one word in each line
+          i++;                  // skip past this word now
+        }
+        output.push(lineSoFar);   // put line into output
+        lineSoFar = "";           // init back to empty
       }
       else {
-        parsed += `${l[i]}`;
-        return parsed;
-      }
-      if ((i + 1) % 3 === 0) {
-        parsed += "\n";
+        lineSoFar = temp;         // take the new word
+        i++;                      // skip past this word now
       }
     }
-    return parsed;
-  };
+    if (lineSoFar.length > 0) {
+      output.push(lineSoFar);
+    }
+    return output.join("\n");
+  }
+
   dry.exts.connection.on("config", cfg => {
     if (typeof cfg.owner === "string" || room_owner) {
       room_owner = cfg.owner ? `${cfg.owner} is the room owner` : room_owner;
@@ -41,9 +59,9 @@ dry.once("load", () => {
       room_owner = "Room has no owner";
     }
     if (Array.isArray(cfg.janitors)) {
-      jannies = cfg.janitors.length ? `\nJanitors: ${parse_list(cfg.janitors)}` : "";
+      cfg.janitors.unshift("\nJanitors: ");
+      jannies = cfg.janitors.length > 1 ? `${splitIntoLines(cfg.janitors, 36)}` : "";
     }
     room_title.title = `${room_owner}${jannies}`;
   });
 });
-
