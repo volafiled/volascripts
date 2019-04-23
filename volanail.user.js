@@ -10,7 +10,7 @@
 // @require     https://cdn.jsdelivr.net/gh/volafiled/node-parrot@acb622d5d9af34f0de648385e6ab4d2411373037/parrot/finally.min.js
 // @require     https://cdn.jsdelivr.net/gh/volafiled/node-parrot@acb622d5d9af34f0de648385e6ab4d2411373037/parrot/pool.min.js
 // @grant       none
-// @version     6
+// @version     7
 // ==/UserScript==
 /* globals GM, dry, format, PromisePool */
 /* jslint strict:global,browser:true,devel:true */
@@ -106,6 +106,21 @@ const SHEET = `
 
 const ICON_ERROR = "https://cdn.jsdelivr.net/gh/RealDolos/assets@5cd4f6f4c349e32e778da55a41928c0309ac4fd4/error.svg";
 const ICON_LOADING = "https://cdn.jsdelivr.net/gh/RealDolos/assets@5cd4f6f4c349e32e778da55a41928c0309ac4fd4/waiting.svg";
+
+function deepCloneClickable(node) {
+  const nn = node.cloneNode(false);
+  if (nn.classList && nn.classList.contains("clickable")) {
+    nn.addEventListener("click", e => {
+      e.stopPropagation();
+      e.preventDefault();
+      node.click();
+    });
+  }
+  for (const c of Array.from(node.children).map(deepCloneClickable)) {
+    nn.appendChild(c);
+  }
+  return nn;
+}
 
 const apool = new class AnimationPool {
   constructor() {
@@ -234,7 +249,7 @@ class Thumbnail {
       class: `volanail-name ${file.dom.nameElement && file.dom.nameElement.className}`,
       title: file.name
     }, file.name);
-    const icon = this.icon = file.dom.controlElement.cloneNode(true);
+    const icon = this.icon = deepCloneClickable(file.dom.controlElement);
     icon.icon = file.dom.controlElement;
     name.insertBefore(icon, name.firstChild);
     name.onclick = e => {
@@ -330,6 +345,9 @@ class Thumbnail {
       }
       this.infos.insertBefore(fmt, this.infos.firstChild);
     }
+    else {
+      this.addInfoForGeneric(info, ip, name);
+    }
     const src = dry.unsafeWindow.makeAssetUrl(info.id, name, info.thumb.server);
     const img = new Image();
     img.classList.add("volanail-media");
@@ -357,6 +375,10 @@ class Thumbnail {
       }
       this.infos.insertBefore(fmt, this.infos.firstChild);
     }
+    else {
+      this.addInfoForGeneric(info, ip, name);
+    }
+
     if (info.image) {
       const format = info.image.format ? `${info.image.format} - ` : "";
       const fmt = $e(
@@ -568,6 +590,26 @@ dry.once("load", () => {
     }
     catch (ex) {
       console.error("something went wronk", ex);
+    }
+    return rv;
+  });
+
+  dry.replaceLate("music", "showIcons", function(orig, file, ...args) {
+    let rv = orig(file, ...args);
+    try {
+      let el = file.dom.vnThumbElement;
+      if (!el) {
+        return;
+      }
+      let ctrl = el.querySelector(".file_control");
+      if (!ctrl) {
+        return;
+      }
+      let nctrl = deepCloneClickable(file.dom.controlElement);
+      ctrl.parentElement.replaceChild(nctrl, ctrl);
+    }
+    catch (ex) {
+      console.error("music icons", ex);
     }
     return rv;
   });
