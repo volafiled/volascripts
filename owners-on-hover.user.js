@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Room owner + janitor hover
 // @namespace    https://not.jew.dance
-// @version      4
+// @version      4.1
 // @description  Show da owner und janitors
 // @author       Polish cuck
 // @icon         https://volafile.org/favicon.ico
@@ -14,10 +14,6 @@
 
 dry.once("load", () => {
   'use strict';
-  const room_title = document.getElementById("name_container");
-  let room_owner = "";
-  let jannies = "";
-
   function wrapLines(arr, len) {
     len = len || 40;
     let cur = "";
@@ -39,6 +35,9 @@ dry.once("load", () => {
     }
     return rv.join("\n");
   }
+
+  const room_title = document.getElementById("name_container");
+
   dry.exts.connection.on("config", cfg => {
     let rv = [cfg.owner ? `Room owner: ${cfg.owner}` : "No owner"];
     if (Array.isArray(cfg.janitors) && cfg.janitors.length) {
