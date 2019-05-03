@@ -15,7 +15,9 @@ dry.once("dom", () => {
   'use strict';
   console.log("running", GM.info.script.name, GM.info.script.version, dry.version);
   const bindtab = GM.info.script.name;
-  const tabbind = localStorage.getItem(bindtab);
+  const tabbind = function () {
+   return localStorage.getItem(bindtab);
+  };
   new class extends dry.Commands {
     bindreports() {
       localStorage.setItem(bindtab, config.room_id);
@@ -25,7 +27,7 @@ dry.once("dom", () => {
   }();
   new class extends dry.MessageFilter {
     showMessage(orig, nick, message, options) {
-      if (tabbind === config.room_id && !options.report && nick === "Log") {
+      if (nick === "Log" && tabbind() === config.room_id && !options.report) {
         dry.exts.connection.call("command", dry.exts.user.info.nick, "reports", "");
       }
     }
