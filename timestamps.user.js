@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Timestamps
-// @version      10
+// @version      11
 // @description  Dongo said to make this
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -34,6 +34,7 @@ dry.once("dom", () => {
   let enabled = localStorage.getItem(config_key);
   let seconds = localStorage.getItem(seconds_key);
   enabled = enabled !== "disabled";
+  document.body.setAttribute("timestamps", "" + enabled);
   seconds = seconds === "enabled";
 
   const SM = new Intl.DateTimeFormat("en-US", {
