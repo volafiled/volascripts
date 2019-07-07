@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         Vola Timestamps
-// @version      9
+// @version      10
 // @description  Dongo said to make this
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
 // @author       topkuk productions
 // @match        https://volafile.org/r/*
 // @require      https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
-// @require      https://cdn.rawgit.com/RealDolos/volascripts/1dd689f72763c0e59f567fdf93865837e35964d6/dry.js
+// @require      https://cdn.jsdelivr.net/gh/RealDolos/volascripts@1dd689f72763c0e59f567fdf93865837e35964d6/dry.js
 // @grant        none
 // @run-at       document-start
 // ==/UserScript==
@@ -54,13 +54,21 @@ dry.once("dom", () => {
       if (!m.nick || !m.options || !m.options.timestamp) {
         return;
       }
-      let span = document.createElement("span");
-      span.classList.add("timestamp", "username", "unselectable");
-      let d = new Date(m.options.timestamp);
-      span.textContent = SM.format(d) + " ";
-      span.setAttribute("title", LG.format(d));
-      m.timestamp_elem = span;
-      m.elem.insertBefore(span, m.elem.firstChild);
+      const addTimestamp = function() {
+        let span = document.createElement("span");
+        span.classList.add("timestamp", "username", "unselectable");
+        let d = new Date(m.options.timestamp);
+        span.textContent = SM.format(d) + " ";
+        span.setAttribute("title", LG.format(d));
+        m.timestamp_elem = span;
+        m.elem.insertBefore(span, m.elem.firstChild);
+      };
+      addTimestamp();
+      const update = m.update.bind(m);
+      m.update = function() {
+        update();
+        addTimestamp();
+      };
     }
   }();
   new class extends dry.Commands {
