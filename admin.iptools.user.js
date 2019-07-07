@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Admin/IP Tools
-// @version      52
+// @version      53
 // @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -57,10 +57,10 @@ dry.once("dom", () => {
     let rv = document.createElement(tag);
     attrs = attrs || {};
     for (let a in attrs) {
-        rv.setAttribute(a, attrs[a]);
+      rv.setAttribute(a, attrs[a]);
     }
     if (text) {
-        rv.textContent = text;
+      rv.textContent = text;
     }
     return rv;
   }
@@ -73,38 +73,38 @@ dry.once("dom", () => {
   const style = $e("style", {id: "iptools-style"}, `
 body[noipspls] .chat_message_ip,
 body[noipspls] .tag_key_ip {
-  display: none;
+display: none;
 }
 .username.ban {
-  display: inline-block;
+display: inline-block;
 }
 @-moz-document url-prefix() {
 .username.ban {
-  display: inline;
+display: inline;
 }
 }
 .username.ban {
-  vertical-align: top;
-  color: white !important;
-  font-size: 50%;
-  padding: 0;
-  opacity: 0.4;
+vertical-align: top;
+color: white !important;
+font-size: 50%;
+padding: 0;
+opacity: 0.4;
 }
 .username.ban:hover {
-  opacity: 1;
+opacity: 1;
 }
 .username.ban icon-hammer {
-  padding: 0;
+padding: 0;
 }
 .icon-untick {
-  margin: 0 !important;
+margin: 0 !important;
 }
 .untick-button, .tick-button {
-  position: relative;
-  z-index: 150;
-  font-size: 18px;
-  padding-bottom: 1px;
-  margin-right: 1ex;
+position: relative;
+z-index: 150;
+font-size: 18px;
+padding-bottom: 1px;
+margin-right: 1ex;
 }
 `);
   document.body.appendChild(style);
@@ -167,99 +167,118 @@ body[noipspls] .tag_key_ip {
   };
 
   dry.replaceEarly("chat", "showMessage",
-    function(orig, nick, message, options, data, ...args) {
-      try {
-        if (nick === "Log" && options.staff && !options.profile && !(data && data.ip)) {
-          const users = [];
-          const ips = [];
-          if (message[0].type === "url" && message[0].href === "/reports") {
-            if (message[1].value.startsWith(" / BLACKLIST ")) {
-              adjustBanPart(message[4], users, ips);
-            }
-            else {
-              const [, p] = message;
-              const m = p.value.match(/ \((\d+\.\d+\.\d+\.\d+)\)/);
-              if (m) {
-                p.value = p.value.replace(m[0], "");
-                ips.push(m[1]);
-              }
-            }
+                   function(orig, nick, message, options, data, ...args) {
+    try {
+      if (nick === "Log" && options.staff && !options.profile && !(data && data.ip)) {
+        const users = [];
+        const ips = [];
+        if (message[0].type === "url" && message[0].href === "/reports") {
+          if (message[1].value.startsWith(" / BLACKLIST ")) {
+            adjustBanPart(message[4], users, ips);
           }
           else {
-            for (const p of message) {
-              if (p.type !== "text") {
-                continue;
-              }
-              if (!IS_BAN.test(p.value)) {
-                continue;
-              }
+            const [, p] = message;
+            const m = p.value.match(/ \((\d+\.\d+\.\d+\.\d+)\)/);
+            if (m) {
+              p.value = p.value.replace(m[0], "");
+              ips.push(m[1]);
+            }
+          }
+        }
+        else {
+          for (const p of message) {
+            if (p.type !== "text") {
+              continue;
+            }
+            if (!IS_BAN.test(p.value)) {
+              continue;
+            }
 
-              adjustBanPart(p, users, ips);
-            }
-          }
-          if (users.length) {
-            options.profile = users.sort().join(" user:");
-            options.unprofile = true;
-          }
-          if (ips.length) {
-            if (!data) {
-              data = new dry.unsafeWindow.Object();
-            }
-            data.ip = ips.join(" ip:");
+            adjustBanPart(p, users, ips);
           }
         }
-      }
-      catch (ex) {
-        console.error(ex);
-      }
-      const msg = orig(...[nick, message, options, data].concat(args));
-      try {
-        if (options.unprofile && msg.nick_elem) {
-          const newnick = document.createElement("a");
-          if (msg.ip_elem) {
-            msg.ip_elem.parentElement.removeChild(msg.ip_elem);
-          }
-          newnick.textContent = msg.nick_elem.textContent;
-          if (msg.ip_elem) {
-            newnick.appendChild(msg.ip_elem);
-          }
-          newnick.className = msg.nick_elem.className;
-          msg.nick_elem.parentElement.replaceChild(newnick, msg.nick_elem);
-          msg.nick_elem = newnick;
-          msg.elem.classList.remove("profile");
+        if (users.length) {
+          options.profile = users.sort().join(" user:");
+          options.unprofile = true;
         }
-        if (msg && (msg.ip_elem || msg.options.profile)) {
+        if (ips.length) {
+          if (!data) {
+            data = new dry.unsafeWindow.Object();
+          }
+          data.ip = ips.join(" ip:");
+        }
+      }
+    }
+    catch (ex) {
+      console.error(ex);
+    }
+    const msg = orig(...[nick, message, options, data].concat(args));
+    try {
+      if (options.unprofile && msg.nick_elem) {
+        const newnick = document.createElement("a");
+        if (msg.ip_elem) {
+          msg.ip_elem.parentElement.removeChild(msg.ip_elem);
+        }
+        newnick.textContent = msg.nick_elem.textContent;
+        if (msg.ip_elem) {
+          newnick.appendChild(msg.ip_elem);
+        }
+        newnick.className = msg.nick_elem.className;
+        msg.nick_elem.parentElement.replaceChild(newnick, msg.nick_elem);
+        msg.nick_elem = newnick;
+        msg.elem.classList.remove("profile");
+      }
+      if (msg && (msg.ip_elem || msg.options.profile)) {
+        const addHammer = function() {
           msg.ban_elem = document.createElement("span");
           const hammer = document.createElement("i");
           hammer.setAttribute("class", "chat_message_icon icon-hammer");
           msg.ban_elem.appendChild(hammer);
           msg.ban_elem.setAttribute("class", "username clickable ban unselectable");
-          msg.ban_elem.addEventListener("click", msg.showBanWindow.bind(msg));
+          const showBanWindow = msg.showBanWindow.bind(msg);
+          msg.ban_elem.addEventListener("click", function(e) {
+            if (e.altKey) {
+              e.preventDefault();
+              e.stopPropagation();
+              purgeMessages(msg);
+              return false;
+            }
+            else {
+              return showBanWindow(e);
+            }
+          });
           msg.nick_elem.appendChild(msg.ban_elem);
+        };
+        addHammer();
+        const update = msg.update.bind(msg);
+        msg.update = function() {
+          update();
+          addHammer();
         }
-        if (msg && nick === "Log" && msg.elem && msg.elem.textContent.includes("Reports /")) {
-          for (const el of msg.elem.children) {
-            let m = /https:\/\/volafile.org\/r\/(.+)$/.exec(el.href);
-            if (m) {
-              const l = roomqueue.get(m[1]);
-              if (!l) {
-                roomqueue.set(m[1], [el]);
-              }
-              else {
-                l.push(el);
-              }
+      }
+      if (msg && nick === "Log" && msg.elem && msg.elem.textContent.includes("Reports /")) {
+        for (const el of msg.elem.children) {
+          let m = /https:\/\/volafile.org\/r\/(.+)$/.exec(el.href);
+          if (m) {
+            const l = roomqueue.get(m[1]);
+            if (!l) {
+              roomqueue.set(m[1], [el]);
+            }
+            else {
+              l.push(el);
             }
           }
         }
       }
-      catch (ex) {
-        console.error(ex);
-      }
-      finally {
-        resolve_rooms().catch(console.error);
-      }
-      return msg;
-    });
+    }
+    catch (ex) {
+      console.error(ex);
+    }
+    finally {
+      resolve_rooms().catch(console.error);
+    }
+    return msg;
+  });
 
   new class extends dry.Commands {
     ip() {
@@ -286,10 +305,48 @@ body[noipspls] .tag_key_ip {
     });
   }
 
+  function purgeMessageIds(ids) {
+    if (!Array.isArray(ids)) {
+      ids = [ids];
+    }
+    if (!ids.length) {
+      return;
+    }
+    dry.exts.connection.call("removeMessages", ids, function(e) {
+      if (e) return dry.exts.chat.showError(e);
+    });
+  }
+
+  function purgeMessages(msg) {
+    dry.exts.templates.renderPrompt("prompts.purgemessages", {
+      user: msg.nick,
+      "one": function() {
+        purgeMessageIds([msg.data.id]);
+      },
+      "ip": function() {
+        const {ip} = msg.data;
+        purgeMessageIds(dry.exts.chat.messages.filter(m => m.data.ip === ip && m.data.id).map(e => e.data.id));
+      },
+      "nick": function() {
+        const nick = msg.nick.toUpperCase();
+        if (!nick) {
+          return;
+        }
+        if (msg.options.user) {
+          purgeMessageIds(dry.exts.chat.messages.filter(m => m.nick.toUpperCase() === nick && m.data.id).map(e => e.data.id));
+        }
+        else {
+          purgeMessageIds(dry.exts.chat.messages.filter(m => m.nick.toUpperCase() === nick && m.data.id && !m.options.user).map(e => e.data.id));
+        }
+      },
+      "cancel": function() {}
+    });
+  }
+
   function selectFreeform() {
     const form = RoomInstance.extensions.templates.renderForm("forms.freeformselect", {});
     form.on("submit", () => {
-    const items = form.values.freeform;
+      const items = form.values.freeform;
       if (!items) {
         console.error("no items");
       }
@@ -344,9 +401,9 @@ body[noipspls] .tag_key_ip {
   // fixup ban templates
   for (const b of Object.values(window._templates.bans)) {
     b.lock = b.locked = false;
-     if (b.upload && b.hours <= 24) {
-       b.upload = false;
-     }
+    if (b.upload && b.hours <= 24) {
+      b.upload = false;
+    }
   }
 
   function tickAll() {
@@ -393,5 +450,18 @@ body[noipspls] .tag_key_ip {
       {type: "textarea", name: "freeform", placeholder: " ", label: "Text", rows: "8", cols: "30"},
     ],
     submit: "Select"
+  };
+
+  _templates.prompts.purgemessages = {
+    title: "Purge messages",
+    content: "Are you sure you want to SHREKT <b>{{user}}</b>?",
+    centered:true,
+    dismissable:true,
+    buttons: [
+      {"name":"This Message","click":"one", default: true},
+      {"name":"All by IP","add_class":"light","click":"ip"},
+      {"name":"All by Nick","add_class":"light","click":"nick"},
+      {"name":"It was a mistake", "add_class":"light", "click":"cancel"}
+    ]
   };
 });
