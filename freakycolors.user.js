@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         Freaky Names
 // @namespace    http://jew.dance/
-// @version      0.12
+// @version      0.13
 // @description  ...and shit
 // @author       RealDolos
 // @match        https://volafile.org/r/*
 // @grant        none
 // @require      https://cdn.jsdelivr.net/gh/volafiled/volascripts@db222e0a836c6da9d5593c7fc93941c0e7a9d2a1/dry.js
 // @run-at       document-start
+// @icon         https://volafile.org/favicon.ico
 // ==/UserScript==
 
 /* globals dry */
@@ -18,23 +19,26 @@
     const colors = {
         "getddosed": "blue",
         "^thejidf$|^jewmobile$|^mrshlomo$": {color: "pink", content:'✡'},
-        "^starsheep": "yellow",
-        "^whitepride$": "#7aa2ff",
+        "^starsheep": {color: "yellow", content: "🥖"},
+        "^whitepride|llazarus$": "#7aa2ff",
         "31337h4x0r|realdolos|vagfacetrm|robocuck|(?:Red|Dong|Immor|lg188)dolos": "white",
         "^kreg$": "hotpink",
         "^robocop$": {color: "dodgerblue", content: '🤖'},
         "^lain$": "gold",
         "^red$": {color: "indianred", content: '💰'},
         "^thersanderia$": { color: "#e3dac9", content: '💀'},
-        "^bain$": {color: "#00A693", content:'☪'},
+        "^bain$": {color: "#00A693", content:'👳🏽‍♂️'},
         "^counselor$|^apha$|^couscous|^vaat$": {color: "rgb(210, 148, 44)", content: '💩'},
         "^lmmortal$": {color: "rgb(255, 108, 135)", content: '👸'},
         "^mercwmouth$|^deadpool$": { color: "lightbrown", content: "👳"},
         "^modchatbot": {content: '🗡️', color: "yellowgreen"},
         "^liquid$|^news$": {content: '🐑'},
         "^cyberia$": {content: 'λ'},
-        "^someguy1992$": {color: "#EDDB17"},
+        "^someguy1992$": {color: "#EDDB17", content:"😑"},
         "^dad": {color: "lightskyblue"},
+        "^heisenb3rg$": {content: "🏳‍🌈"},
+        "^GitGood$": {color: "rgb(116, 161, 204)"},
+        "^SolSelene$": {content: "🐇"},
     };
     const r_colors = [];
     for (let name in colors) {
