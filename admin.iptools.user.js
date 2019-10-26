@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Admin/IP Tools
-// @version      53
+// @version      54
 // @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -166,6 +166,8 @@ margin-right: 1ex;
     }
   };
 
+  const known_reports = new Set();
+
   dry.replaceEarly("chat", "showMessage",
                    function(orig, nick, message, options, data, ...args) {
     try {
@@ -182,6 +184,14 @@ margin-right: 1ex;
             if (m) {
               p.value = p.value.replace(m[0], "");
               ips.push(m[1]);
+            }
+            const key = message.reduce((p, c) => p + (c.value || c.text || c.url || c.id), "");
+            if (known_reports.has(key)) {
+              return;
+            }
+            known_reports.add(key);
+            if (known_reports.size > 100) {
+              known_reports.delete(known_reports.entries().next().value);
             }
           }
         }
@@ -206,6 +216,28 @@ margin-right: 1ex;
             data = new dry.unsafeWindow.Object();
           }
           data.ip = ips.join(" ip:");
+        }
+      }
+      if (nick === "Log" && options.staff && !options.profile && data && data.ip) {
+        const key = message.reduce((p, c) => p + (c.value || c.text || c.url || c.id), "");
+        if (key.includes("SPAMITY REPORT SPAM")) {
+          const {ip} = data;
+          setTimeout(() => {
+            const {messages, scrollState} = RoomInstance.extensions.chat;
+            for (let i = messages.length - 1; i >= 0; --i) {
+              const m = messages[i];
+              if (m.data.ip !== ip || m.nick !== "Log") {
+                continue;
+              }
+              messages.splice(i, 1);
+              if (m.elem && m.elem.parentElement) {
+                scrollState.adjust(-m.elem.clientHeight);
+                m.elem.parentElement.removeChild(m.elem);
+                scrollState.restore();
+              }
+            }
+          }, 0);
+          return;
         }
       }
     }
