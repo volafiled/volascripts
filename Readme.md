@@ -6,7 +6,7 @@ In order to install a script, click on any link in the list above that ends with
 it will take you to a page with script's source code. On that page in the top right corner, click on the `Raw` button.
 Tampermonkey/Violentmonkey will then prompt you to confirm the installation.
 
-After installing (or updating) a script, you nee to reload all vola tabs.
+After installing (or updating) a script, you need to reload all vola tabs.
 
 You may something have to reload tabs when you first start your browser and your previous session is restored. This is particularly true for Chrome.
 
