@@ -1,13 +1,16 @@
 # volascripts
 
-To make scripts possible to install and use at all, you need to install either 
-[tampermonkey](https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/)
-or [tampermonkey](https://addons.mozilla.org/en-US/firefox/addon/violentmonkey/)
-In order to install a script, click on any link in the list above that ends with `*.user.js`,
-it will take you to the page with script's source code. After that click on the `Raw` button
-and confirm installation with your userscript extension.
+To install and use scripts, you first need to install either [tampermonkey](https://www.tampermonkey.net/)or [violentmonkey](https://addons.mozilla.org/firefox/addon/violentmonkey/). Greasemonkey may or may not work.
 
-## What those scripts do?
+In order to install a script, click on any link in the list above that ends with `*.user.js`.
+it will take you to a page with script's source code. On that page in the top right corner, click on the `Raw` button.
+Tampermonkey/Violentmonkey will then prompt you to confirm the installation.
 
-Check the [Wiki](https://github.com/volafiled/volascripts/wiki) for description of some of the
+After installing (or updating) a script, you nee to reload all vola tabs.
+
+You may something have to reload tabs when you first start your browser and your previous session is restored. This is particularly true for Chrome.
+
+## What do these scripts actually do?
+
+Check the [Wiki](https://github.com/volafiled/volascripts/wiki) for descriptions of some of the
 scripts. Stuff's work in progress tho!
