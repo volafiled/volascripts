@@ -1,6 +1,6 @@
 # volascripts
 
-To install and use scripts, you first need to install either [tampermonkey](https://www.tampermonkey.net/)or [violentmonkey](https://addons.mozilla.org/firefox/addon/violentmonkey/). Greasemonkey may or may not work.
+To install and use scripts, you first need to install either [tampermonkey](https://www.tampermonkey.net/) or [violentmonkey](https://addons.mozilla.org/firefox/addon/violentmonkey/). Greasemonkey may or may not work.
 
 In order to install a script, click on any link in the list above that ends with `*.user.js`.
 it will take you to a page with script's source code. On that page in the top right corner, click on the `Raw` button.
