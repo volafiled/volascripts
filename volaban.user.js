@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         VolaBan
-// @version      3
+// @version      4
 // @description  Filter annoying users
 // @namespace    https://volafile.org
 // @include      https://volafile.org/r/*
@@ -8,18 +8,19 @@
 // @author       topkuk productions
 // @match        https://volafile.org/r/*
 // @require      https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
-// @require      https://cdn.rawgit.com/RealDolos/volascripts/1dd689f72763c0e59f567fdf93865837e35964d6/dry.js
+// @require      https://cdn.jsdelivr.net/gh/volafiled/volascripts@a9c0424e5498deea9fd437c15b2137c3bec07c61/dry.min.js
 // @grant        none
 // @run-at       document-start
 // ==/UserScript==
-
+/* globals dry, GM */
 (function() {
     "use strict";
 
     const basebans = {
         staff: ["News"],
         exact: ["DeadPool", "Wade"],
-        whites: ["real", "dolos"]
+        whites: ["real", "dolos"],
+        logs: ["davidbowie", "pinkb0t"]
     };
 
     console.log("running", GM.info.script.name, GM.info.script.version, dry.version);
@@ -37,7 +38,7 @@
         }
 
         for (let key in basebans) {
-            bans["r" + key] = key == "whites" ?
+            bans["r" + key] = key === "whites" || key === "logs" ?
                 new RegExp(`(?:${bans[key].join("|")})`, "i") :
             new RegExp(`^(?:${bans[key].join("|")})$`, "i");
         }
@@ -49,9 +50,10 @@
         localStorage.setItem("bans", JSON.stringify(bans));
     };
 
-    const ignore = (nick, options) => {
+    const ignore = (nick, options, message) => {
         return bans.rexact.test(nick) ||
             (options.staff && bans.rstaff.test(nick)) ||
+            (nick === "Log" && Array.isArray(message) && bans.rlogs.test(message[0].value)) ||
             (!(options.staff || options.user) && bans.rwhites.test(nick));
     };
 
@@ -59,7 +61,7 @@
         // Will get rid of messages but not of notifications
         new class extends dry.MessageFilter {
             showMessage(orig, nick, message, options) {
-                if (!ignore(nick, options)) {
+                if (!ignore(nick, options, message)) {
                     return;
                 }
                 console.error("ignored", nick.toString(), JSON.stringify(message), JSON.stringify(options));
@@ -71,13 +73,13 @@
                 return false;
             }
             who = who.trim();
-            let a = bans[what == "w" ? "whites" : (what == "s" ? "staff" : "exact")];
-            if (type == "block") {
+            let a = bans[what === "w" ? "whites" : (what === "s" ? "staff" : "exact")];
+            if (type === "block") {
                 if (a.indexOf(who) < 0) {
                     a.push(who);
                 }
             }
-            else if (type == "unblock") {
+            else if (type === "unblock") {
                 let index = a.indexOf(who);
                 if (index > 0) {
                     a.splice(index, 1);
