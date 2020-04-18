@@ -73,7 +73,8 @@
                 return false;
             }
             who = who.trim();
-            let a = bans[what === "w" ? "whites" : (what === "s" ? "staff" : "exact")];
+            let a = bans[what === "w" ? "whites" : (what === "s" ? "staff" :
+              (what === "l" ? "logs" : "exact"))];
             if (type === "block") {
                 if (a.indexOf(who) < 0) {
                     a.push(who);
@@ -100,6 +101,9 @@
             sblock(e) {
                 return _ban("s", "block", e);
             }
+            lblock(e) {
+                return _ban("l", "block", e);
+            }
             unblock(e) {
                 return _ban("e", "unblock", e);
             }
@@ -108,6 +112,9 @@
             }
             sunblock(e) {
                 return _ban("s", "unblock", e);
+            }
+            lunblock(e) {
+                return _ban("l", "unblock", e);
             }
             blockreset() {
                 localStorage.removeItem("bans");
@@ -122,7 +129,7 @@
                     "value": `bans:`
                 });
                 m.push({"type": "break" });
-                for (let i of ["whites", "exact", "staff"]) {
+                for (let i of ["whites", "exact", "staff", "logs"]) {
                     m.push({
                         "type": "text",
                         "value": `${i}: ${JSON.stringify(bans[i])}`
