@@ -53,7 +53,8 @@
     const ignore = (nick, options, message) => {
         return bans.rexact.test(nick) ||
             (options.staff && bans.rstaff.test(nick)) ||
-            (nick === "Log" && Array.isArray(message) && bans.rlogs.test(message[0].value)) ||
+            (nick === "Log" && Array.isArray(message) &&
+            message.length === 1 && bans.rlogs.test(message[0].value)) ||
             (!(options.staff || options.user) && bans.rwhites.test(nick));
     };
 
