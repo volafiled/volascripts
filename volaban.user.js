@@ -51,11 +51,11 @@
     };
 
     const ignore = (nick, options, message) => {
-        return bans.rexact.test(nick) ||
-            (options.staff && bans.rstaff.test(nick)) ||
-            (nick === "Log" && Array.isArray(message) &&
+        return (bans.exact.length && bans.rexact.test(nick)) ||
+            (bans.staff.length && options.staff && bans.rstaff.test(nick)) ||
+            (bans.logs.length && nick === "Log" && Array.isArray(message) &&
             message.length === 1 && bans.rlogs.test(message[0].value)) ||
-            (!(options.staff || options.user) && bans.rwhites.test(nick));
+            (bans.whites.length && !(options.staff || options.user) && bans.rwhites.test(nick));
     };
 
     dry.once("dom", () => {
@@ -80,11 +80,19 @@
                 if (a.indexOf(who) < 0) {
                     a.push(who);
                 }
+                else {
+                  dry.appendMessage("VolaBan", `${who}: Nick already in blocklist.`);
+                  return true;
+                }
             }
             else if (type === "unblock") {
                 let index = a.indexOf(who);
-                if (index > 0) {
+                if (index >= 0) {
                     a.splice(index, 1);
+                }
+                else {
+                  dry.appendMessage("VolaBan", `${who}: No such nick in blocklist.`);
+                  return true;
                 }
             }
             save();
