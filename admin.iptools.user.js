@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Vola Admin/IP Tools
-// @version      54
+// @version      55
 // @description  Does a bunch of stuff for mods.
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
@@ -34,7 +34,7 @@ dry.once("dom", () => {
         break;
       }
     }
-    const pusers = pieces.slice(idx).map(u => {
+    const userPieces = pieces.slice(idx).map(u => {
       u = u.replace(/(?:[()]|,$)/g, "").trim();
       if (/^\d+\.\d+\.\d+\.\d+$/.test(u)) {
         ips.push(u);
@@ -46,17 +46,86 @@ dry.once("dom", () => {
       return u;
     }).filter(e => e).sort();
 
-    if (!pusers.length) {
-      pusers.push("some cuck");
+    if (!userPieces.length) {
+      userPieces.push("some cuck");
     }
 
-    p.value = `${pieces.slice(0, idx).join(" ").replace("did-nothing-to", "did nothing to")} ${pusers.join(", ")}${post}`;
+    p.value = `${pieces.slice(0, idx).join(" ").replace("did-nothing-to", "did nothing to")} ${userPieces.join(", ")}${post}`;
+  }
+
+  function adjustLogMessage(message, options, data) {
+    const users = [];
+    const ips = [];
+    if (message[0].type === "url" && message[0].href === "/reports") {
+      if (message[1].value.startsWith(" / BLACKLIST ")) {
+        adjustBanPart(message[4], users, ips);
+      }
+      else {
+        const [, p] = message;
+        const m = p.value.match(/ \((\d+\.\d+\.\d+\.\d+)\)/);
+        if (m) {
+          p.value = p.value.replace(m[0], "");
+          ips.push(m[1]);
+        }
+        const key = message.reduce((p, c) => p + (c.value || c.text || c.url || c.id), "");
+        if (known_reports.has(key)) {
+          return REMOVE;
+        }
+        known_reports.add(key);
+        if (known_reports.size > 100) {
+          known_reports.delete(known_reports.entries().next().value);
+        }
+      }
+    }
+    else {
+      for (const p of message) {
+        if (p.type !== "text") {
+          continue;
+        }
+        if (!IS_BAN.test(p.value)) {
+          continue;
+        }
+
+        adjustBanPart(p, users, ips);
+      }
+    }
+    if (users.length) {
+      options.profile = users.sort().join(" user:");
+      options.unprofile = true;
+    }
+    if (ips.length) {
+      if (!data) {
+        data = new dry.unsafeWindow.Object();
+      }
+      data.ip = ips.join(" ip:");
+    }
+
+    return data;
+  }
+
+  function nukeLogMessage(message, data) {
+    const {ip} = data;
+    setTimeout(() => {
+      const {messages, scrollState} = RoomInstance.extensions.chat;
+      for (let i = messages.length - 1; i >= 0; --i) {
+        const m = messages[i];
+        if (m.data.ip !== ip || m.nick !== "Log") {
+          continue;
+        }
+        messages.splice(i, 1);
+        if (m.elem && m.elem.parentElement) {
+          scrollState.adjust(-m.elem.clientHeight);
+          m.elem.parentElement.removeChild(m.elem);
+          scrollState.restore();
+        }
+      }
+    }, 0);
   }
 
   function $e(tag, attrs, text) {
-    let rv = document.createElement(tag);
+    const rv = document.createElement(tag);
     attrs = attrs || {};
-    for (let a in attrs) {
+    for (const a in attrs) {
       rv.setAttribute(a, attrs[a]);
     }
     if (text) {
@@ -64,6 +133,73 @@ dry.once("dom", () => {
     }
     return rv;
   }
+
+  function nukeRoom() {
+    dry.exts.ui.showQuestion({
+      title: "Disable this room",
+      text: "Are you sure you want to disable this room?",
+      positive: "Disable",
+      negative: "Abort"
+    }, res => {
+      if (!res) {
+        return;
+      }
+      dry.unsafeWindow.Volafile.setRoomConfig({
+        name: "closed",
+        motd: "closed",
+        disabled: true
+      });
+    });
+  }
+
+  function purgeMessageIds(ids) {
+    if (!Array.isArray(ids)) {
+      ids = [ids];
+    }
+    if (!ids.length) {
+      return;
+    }
+    dry.exts.connection.call("removeMessages", ids, function(e) {
+      if (e) {
+        dry.exts.chat.showError(e);
+      }
+    });
+  }
+
+  function purgeMessages(msg) {
+    const {messages} = dry.exts.chat;
+
+    dry.exts.templates.renderPrompt("prompts.purgemessages", {
+      user: msg.nick,
+      "one"() {
+        purgeMessageIds([msg.data.id]);
+      },
+      "ip"() {
+        const {ip} = msg.data;
+        purgeMessageIds(messages.filter(m => m.data.ip === ip && m.data.id).map(e => e.data.id));
+      },
+      "nick"() {
+        const nick = msg.nick.toUpperCase();
+        if (!nick) {
+          return;
+        }
+        if (msg.options.user) {
+          purgeMessageIds(messages.filter(m => m.nick.toUpperCase() === nick && m.data.id).map(e => e.data.id));
+        }
+        else {
+          purgeMessageIds(messages.filter(m => m.nick.toUpperCase() === nick && m.data.id && !m.options.user).map(e => e.data.id));
+        }
+      },
+      "cancel"() {}
+    });
+  }
+
+  function tickAll() {
+    RoomInstance.extensions.filelist.filelist.forEach(file => {
+      file.setData("checked", true);
+    });
+  }
+
 
   const $ = (sel, el) => (el || document).querySelector(sel);
 
@@ -73,41 +209,42 @@ dry.once("dom", () => {
   const style = $e("style", {id: "iptools-style"}, `
 body[noipspls] .chat_message_ip,
 body[noipspls] .tag_key_ip {
-display: none;
+  display: none;
 }
 .username.ban {
-display: inline-block;
+  display: inline-block;
 }
 @-moz-document url-prefix() {
-.username.ban {
-display: inline;
+  .username.ban {
+    display: inline;
+  }
 }
-}
 .username.ban {
-vertical-align: top;
-color: white !important;
-font-size: 50%;
-padding: 0;
-opacity: 0.4;
+  vertical-align: top;
+  color: white !important;
+  font-size: 50%;
+  padding: 0;
+  opacity: 0.4;
 }
 .username.ban:hover {
-opacity: 1;
+  opacity: 1;
 }
 .username.ban icon-hammer {
-padding: 0;
+  padding: 0;
 }
 .icon-untick {
-margin: 0 !important;
+  margin: 0 !important;
 }
 .untick-button, .tick-button {
-position: relative;
-z-index: 150;
-font-size: 18px;
-padding-bottom: 1px;
-margin-right: 1ex;
+  position: relative;
+  z-index: 150;
+  font-size: 18px;
+  padding-bottom: 1px;
+  margin-right: 1ex;
 }
 `);
   document.body.appendChild(style);
+
   let state = localStorage.getItem("noipspls") !== "false";
   if (state !== false) {
     state = true;
@@ -137,180 +274,137 @@ margin-right: 1ex;
   uc.parentElement.insertBefore(btn, uc.nextSibling);
   btn.addEventListener("click", toggle);
 
-  const roomqueue = new Map();
-  let resolving = false;
-  const resolve_rooms = async () => {
-    if (resolving) {
-      return;
+  const roomQueue = new class RoomQueue extends Map {
+    constructor() {
+      super();
+      this.resolving = false;
     }
-    resolving = true;
-    try {
-      while (roomqueue.size) {
-        const [room, elems] = roomqueue[Symbol.iterator]().next().value;
-        try {
-          let res = await dry.unsafeWindow.Volafile.makeAPIRequest("getRoomConfig", {
-            room
-          });
-          for (const el of elems) {
-            el.textContent = res.name;
-          }
-        }
-        catch (ex) {
-          console.error(ex);
-        }
-        roomqueue.delete(room);
+
+    add(room, el) {
+      const l = this.get(room);
+      if (!l) {
+        this.set(room, [el]);
+      }
+      else {
+        l.push(el);
       }
     }
-    finally {
-      resolving = false;
+
+    async resolve() {
+      if (this.resolving) {
+        return;
+      }
+      this.resolving = true;
+
+      try {
+        while (this.size) {
+          const [room, elements] = this[Symbol.iterator]().next().value;
+          try {
+            const res = await dry.unsafeWindow.Volafile.makeAPIRequest("getRoomConfig", {
+              room
+            });
+            for (const el of elements) {
+              el.textContent = res.name;
+            }
+          }
+          catch (ex) {
+            console.error(ex);
+          }
+          this.delete(room);
+        }
+      }
+      finally {
+        this.resolving = false;
+      }
     }
-  };
+  }();
 
   const known_reports = new Set();
 
   dry.replaceEarly("chat", "showMessage",
-                   function(orig, nick, message, options, data, ...args) {
-    try {
-      if (nick === "Log" && options.staff && !options.profile && !(data && data.ip)) {
-        const users = [];
-        const ips = [];
-        if (message[0].type === "url" && message[0].href === "/reports") {
-          if (message[1].value.startsWith(" / BLACKLIST ")) {
-            adjustBanPart(message[4], users, ips);
-          }
-          else {
-            const [, p] = message;
-            const m = p.value.match(/ \((\d+\.\d+\.\d+\.\d+)\)/);
-            if (m) {
-              p.value = p.value.replace(m[0], "");
-              ips.push(m[1]);
-            }
-            const key = message.reduce((p, c) => p + (c.value || c.text || c.url || c.id), "");
-            if (known_reports.has(key)) {
-              return;
-            }
-            known_reports.add(key);
-            if (known_reports.size > 100) {
-              known_reports.delete(known_reports.entries().next().value);
-            }
+    function(orig, nick, message, options, data, ...args) {
+      try {
+        if (nick === "Log" && options.staff && !options.profile && !(data && data.ip)) {
+          data = adjustLogMessage(message, options, data) || data;
+          if (data === REMOVE) {
+            return null;
           }
         }
-        else {
-          for (const p of message) {
-            if (p.type !== "text") {
-              continue;
-            }
-            if (!IS_BAN.test(p.value)) {
-              continue;
-            }
+        if (nick === "Log" && options.staff && !options.profile && data && data.ip) {
+          const key = message.reduce((p, c) => p + (c.value || c.text || c.url || c.id), "");
+          if (key.includes("SPAMITY REPORT SPAM")) {
+            nukeLogMessage(message, data);
+            return null;
+          }
+        }
+      }
+      catch (ex) {
+        console.error(ex);
+      }
 
-            adjustBanPart(p, users, ips);
+      const msg = orig(...[nick, message, options, data].concat(args));
+
+      try {
+        if (options.unprofile && msg.nick_elem) {
+          const newNick = document.createElement("a");
+          if (msg.ip_elem) {
+            msg.ip_elem.parentElement.removeChild(msg.ip_elem);
           }
-        }
-        if (users.length) {
-          options.profile = users.sort().join(" user:");
-          options.unprofile = true;
-        }
-        if (ips.length) {
-          if (!data) {
-            data = new dry.unsafeWindow.Object();
+          newNick.textContent = msg.nick_elem.textContent;
+          if (msg.ip_elem) {
+            newNick.appendChild(msg.ip_elem);
           }
-          data.ip = ips.join(" ip:");
+          newNick.className = msg.nick_elem.className;
+          msg.nick_elem.parentElement.replaceChild(newNick, msg.nick_elem);
+          msg.nick_elem = newNick;
+          msg.elem.classList.remove("profile");
         }
-      }
-      if (nick === "Log" && options.staff && !options.profile && data && data.ip) {
-        const key = message.reduce((p, c) => p + (c.value || c.text || c.url || c.id), "");
-        if (key.includes("SPAMITY REPORT SPAM")) {
-          const {ip} = data;
-          setTimeout(() => {
-            const {messages, scrollState} = RoomInstance.extensions.chat;
-            for (let i = messages.length - 1; i >= 0; --i) {
-              const m = messages[i];
-              if (m.data.ip !== ip || m.nick !== "Log") {
-                continue;
+        if (msg && (msg.ip_elem || msg.options.profile)) {
+          const addHammer = function() {
+            msg.ban_elem = document.createElement("span");
+            const hammer = document.createElement("i");
+            hammer.setAttribute("class", "chat_message_icon icon-hammer");
+            msg.ban_elem.appendChild(hammer);
+            msg.ban_elem.setAttribute("class", "username clickable ban unselectable");
+            const showBanWindow = msg.showBanWindow.bind(msg);
+            msg.ban_elem.addEventListener("click", function(e) {
+              if (e.altKey) {
+                e.preventDefault();
+                e.stopPropagation();
+                purgeMessages(msg);
+                return false;
               }
-              messages.splice(i, 1);
-              if (m.elem && m.elem.parentElement) {
-                scrollState.adjust(-m.elem.clientHeight);
-                m.elem.parentElement.removeChild(m.elem);
-                scrollState.restore();
-              }
-            }
-          }, 0);
-          return;
-        }
-      }
-    }
-    catch (ex) {
-      console.error(ex);
-    }
-    const msg = orig(...[nick, message, options, data].concat(args));
-    try {
-      if (options.unprofile && msg.nick_elem) {
-        const newnick = document.createElement("a");
-        if (msg.ip_elem) {
-          msg.ip_elem.parentElement.removeChild(msg.ip_elem);
-        }
-        newnick.textContent = msg.nick_elem.textContent;
-        if (msg.ip_elem) {
-          newnick.appendChild(msg.ip_elem);
-        }
-        newnick.className = msg.nick_elem.className;
-        msg.nick_elem.parentElement.replaceChild(newnick, msg.nick_elem);
-        msg.nick_elem = newnick;
-        msg.elem.classList.remove("profile");
-      }
-      if (msg && (msg.ip_elem || msg.options.profile)) {
-        const addHammer = function() {
-          msg.ban_elem = document.createElement("span");
-          const hammer = document.createElement("i");
-          hammer.setAttribute("class", "chat_message_icon icon-hammer");
-          msg.ban_elem.appendChild(hammer);
-          msg.ban_elem.setAttribute("class", "username clickable ban unselectable");
-          const showBanWindow = msg.showBanWindow.bind(msg);
-          msg.ban_elem.addEventListener("click", function(e) {
-            if (e.altKey) {
-              e.preventDefault();
-              e.stopPropagation();
-              purgeMessages(msg);
-              return false;
-            }
-            else {
+
               return showBanWindow(e);
-            }
-          });
-          msg.nick_elem.appendChild(msg.ban_elem);
-        };
-        addHammer();
-        const update = msg.update.bind(msg);
-        msg.update = function() {
-          update();
+            });
+            msg.nick_elem.appendChild(msg.ban_elem);
+          };
           addHammer();
+          const update = msg.update.bind(msg);
+          msg.update = function() {
+            update();
+            addHammer();
+          };
         }
-      }
-      if (msg && nick === "Log" && msg.elem && msg.elem.textContent.includes("Reports /")) {
-        for (const el of msg.elem.children) {
-          let m = /https:\/\/volafile.org\/r\/(.+)$/.exec(el.href);
-          if (m) {
-            const l = roomqueue.get(m[1]);
-            if (!l) {
-              roomqueue.set(m[1], [el]);
+        if (msg && nick === "Log" && msg.elem && msg.elem.textContent.includes("Reports /")) {
+          for (const el of msg.elem.children) {
+            const m = /https:\/\/volafile.org\/r\/(.+)$/.exec(el.href);
+            if (!m) {
+              continue;
             }
-            else {
-              l.push(el);
-            }
+            roomQueue.add(m[1], el);
           }
         }
       }
-    }
-    catch (ex) {
-      console.error(ex);
-    }
-    finally {
-      resolve_rooms().catch(console.error);
-    }
-    return msg;
-  });
+      catch (ex) {
+        console.error(ex);
+      }
+      finally {
+        roomQueue.resolve().catch(console.error);
+      }
+
+      return msg;
+    });
 
   new class extends dry.Commands {
     ip() {
@@ -319,87 +413,39 @@ margin-right: 1ex;
     }
   }();
 
-  function nukeRoom() {
-    dry.exts.ui.showQuestion({
-      title: "Disable this room",
-      text: "Are you sure you want to disable this room?",
-      positive: "Disable",
-      negative: "Abort"
-    }, res => {
-      if (!res) {
-        return;
-      }
-      dry.unsafeWindow.Volafile.setRoomConfig({
-        name: "closed",
-        motd: "closed",
-        disabled: true
-      });
-    });
-  }
-
-  function purgeMessageIds(ids) {
-    if (!Array.isArray(ids)) {
-      ids = [ids];
+  // fixup ban templates
+  for (const b of Object.values(window._templates.bans)) {
+    b.lock = b.locked = false;
+    if (b.upload && b.hours <= 12) {
+      b.upload = false;
     }
-    if (!ids.length) {
-      return;
-    }
-    dry.exts.connection.call("removeMessages", ids, function(e) {
-      if (e) return dry.exts.chat.showError(e);
-    });
   }
 
-  function purgeMessages(msg) {
-    dry.exts.templates.renderPrompt("prompts.purgemessages", {
-      user: msg.nick,
-      "one": function() {
-        purgeMessageIds([msg.data.id]);
-      },
-      "ip": function() {
-        const {ip} = msg.data;
-        purgeMessageIds(dry.exts.chat.messages.filter(m => m.data.ip === ip && m.data.id).map(e => e.data.id));
-      },
-      "nick": function() {
-        const nick = msg.nick.toUpperCase();
-        if (!nick) {
-          return;
-        }
-        if (msg.options.user) {
-          purgeMessageIds(dry.exts.chat.messages.filter(m => m.nick.toUpperCase() === nick && m.data.id).map(e => e.data.id));
-        }
-        else {
-          purgeMessageIds(dry.exts.chat.messages.filter(m => m.nick.toUpperCase() === nick && m.data.id && !m.options.user).map(e => e.data.id));
-        }
-      },
-      "cancel": function() {}
-    });
-  }
-
-  function selectFreeform() {
-    const form = RoomInstance.extensions.templates.renderForm("forms.freeformselect", {});
-    form.on("submit", () => {
-      const items = form.values.freeform;
-      if (!items) {
-        console.error("no items");
-      }
-      const ids = new Set();
-      items.replace(/get\/(.+?)\//g, (m, id) => {
-        ids.add(id);
-      });
-      items.replace(/gallery=([a-zA-z0-9_-]+)/g, (m, id) => {
-        ids.add(id);
-      });
-      items.replace(/@([a-zA-z0-9_-]+)/g, (m, id) => {
-        ids.add(id);
-      });
-      console.log(ids);
-      RoomInstance.extensions.filelist.filelist.forEach(file => {
-        if (ids.has(file.id)) {
-          file.dom.controlElement.firstChild.click();
-        }
-      });
-    });
-  }
+  const DO_ET = Symbol("We waz doing et");
+  const REMOVE = Symbol();
+  const cont = $("#upload_container");
+  const untickButton = $e("label", {
+    for: "untick-button",
+    id: "untick-button",
+    class: "button untick-button",
+    title: "Untick all!"
+  });
+  untickButton.appendChild($e("span", {
+    class: "icon-minus"
+  }));
+  const tickButton = $e("label", {
+    for: "tick-button",
+    id: "tick-button",
+    class: "button tick-button",
+    title: "Tick all!"
+  });
+  tickButton.appendChild($e("span", {
+    class: "icon-plus"
+  }));
+  untickButton.addEventListener("click", () => dry.exts.adminButtons.untickAll(DO_ET));
+  tickButton.addEventListener("click", tickAll);
+  cont.insertBefore(untickButton, cont.firstChild);
+  cont.insertBefore(tickButton, cont.firstChild);
 
   dry.replaceEarly("ui", "showContextMenu", function(orig, el, options) {
     try {
@@ -409,12 +455,6 @@ margin-right: 1ex;
           text: "Nuke Room",
           admin: true,
           click: nukeRoom
-        });
-        options.buttons.push({
-          icon: "icon-broom",
-          text: "Freeform Select",
-          admin: true,
-          click: selectFreeform
         });
       }
       if (options && options.dedupe === "room_contextmenu" && dry.exts.user.info.admin) {
@@ -430,70 +470,23 @@ margin-right: 1ex;
     return orig(el, options);
   });
 
-  // fixup ban templates
-  for (const b of Object.values(window._templates.bans)) {
-    b.lock = b.locked = false;
-    if (b.upload && b.hours <= 24) {
-      b.upload = false;
-    }
-  }
-
-  function tickAll() {
-    RoomInstance.extensions.filelist.filelist.forEach(file => {
-      file.setData("checked", true);
-    });
-  }
-
-  const doet = Symbol("doet");
-  const cont = $("#upload_container");
-  const untickButton = $e("label", {
-    "for": "untick-button",
-    "id": "untick-button",
-    "class": "button untick-button",
-    "title": "Untick all!"
-  });
-  untickButton.appendChild($e("span", {
-    "class": "icon-minus"
-  }));
-  const tickButton = $e("label", {
-    "for": "tick-button",
-    "id": "tick-button",
-    "class": "button tick-button",
-    "title": "Tick all!"
-  });
-  tickButton.appendChild($e("span", {
-    "class": "icon-plus"
-  }));
-  untickButton.addEventListener("click", () => dry.exts.adminButtons.untickAll(doet));
-  tickButton.addEventListener("click", tickAll);
-  cont.insertBefore(untickButton, cont.firstChild);
-  cont.insertBefore(tickButton, cont.firstChild);
-
   dry.replaceEarly("adminButtons", "untickAll", function(orig, kek) {
-    if (kek !== doet) {
+    if (kek !== DO_ET) {
       return;
     }
-    return orig();
+    orig();
   });
-
-  _templates.forms.freeformselect = {
-    title: "Select files from freeform text",
-    fields: [
-      {type: "textarea", name: "freeform", placeholder: " ", label: "Text", rows: "8", cols: "30"},
-    ],
-    submit: "Select"
-  };
 
   _templates.prompts.purgemessages = {
     title: "Purge messages",
     content: "Are you sure you want to SHREKT <b>{{user}}</b>?",
-    centered:true,
-    dismissable:true,
+    centered: true,
+    dismissable: true,
     buttons: [
-      {"name":"This Message","click":"one", default: true},
-      {"name":"All by IP","add_class":"light","click":"ip"},
-      {"name":"All by Nick","add_class":"light","click":"nick"},
-      {"name":"It was a mistake", "add_class":"light", "click":"cancel"}
+      {name: "This Message", click: "one", default: true},
+      {name: "All by IP", add_class: "light", click: "ip"},
+      {name: "All by Nick", add_class: "light", click: "nick"},
+      {name: "It was a mistake", add_class: "light", click: "cancel"}
     ]
   };
 });
