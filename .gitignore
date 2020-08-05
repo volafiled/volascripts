@@ -2,3 +2,4 @@ Session.vim
 dav/
 dav
 .eslintrc*
+.vscode/settings.json
