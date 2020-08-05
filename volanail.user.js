@@ -1,19 +1,18 @@
 // ==UserScript==
-// @name        VolaNailer
-// @namespace   https://volafile.org
-// @include     https://volafile.org/r/*
-// @icon        https://volafile.org/favicon.ico
-// @author      topkuk productions
-// @match       https://volafile.org/r/*
-// @require     https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
-// @require     https://cdn.jsdelivr.net/gh/volafiled/volascripts@a9c0424e5498deea9fd437c15b2137c3bec07c61/dry.min.js
-// @require     https://cdn.jsdelivr.net/gh/volafiled/node-parrot@acb622d5d9af34f0de648385e6ab4d2411373037/parrot/finally.min.js
-// @require     https://cdn.jsdelivr.net/gh/volafiled/node-parrot@acb622d5d9af34f0de648385e6ab4d2411373037/parrot/pool.min.js
-// @grant       none
-// @version     7
+// @name      VolaNailer
+// @namespace https://volafile.org
+// @include   https://volafile.org/r/*
+// @icon      https://volafile.org/favicon.ico
+// @author    topkuk productions
+// @match     https://volafile.org/r/*
+// @require   https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
+// @require   https://cdn.jsdelivr.net/gh/volafiled/volascripts@a9c0424e5498deea9fd437c15b2137c3bec07c61/dry.min.js
+// @require   https://cdn.jsdelivr.net/gh/volafiled/node-parrot@acb622d5d9af34f0de648385e6ab4d2411373037/parrot/finally.min.js
+// @require   https://cdn.jsdelivr.net/gh/volafiled/node-parrot@acb622d5d9af34f0de648385e6ab4d2411373037/parrot/pool.min.js
+// @grant     none
+// @version   7
 // ==/UserScript==
 /* globals GM, dry, format, PromisePool */
-/* jslint strict:global,browser:true,devel:true */
 
 "use strict";
 
@@ -122,7 +121,7 @@ function deepCloneClickable(node) {
   return nn;
 }
 
-const apool = new class AnimationPool {
+const framePool = new class FramePool {
   constructor() {
     this.items = [];
     this.id = 0;
@@ -215,7 +214,7 @@ let oldCount = 0;
 const rule = Array.from(sheet.sheet.cssRules).find(
   e => e && e.selectorText === ".volanail-thumb" ? e : null);
 const update_columns = () => {
-  apool.schedule(null, () => {
+  framePool.schedule(null, () => {
     const columnCount = Math.max(2, Math.floor(files_frame.clientWidth / 220));
     if (oldCount === columnCount) {
       return;
@@ -289,7 +288,7 @@ class Thumbnail {
   }
 
   setMedia(el) {
-    apool.schedule(this, this.setMediaInternal, el);
+    framePool.schedule(this, this.setMediaInternal, el);
   }
 
   setMediaInternal(el) {
@@ -300,7 +299,7 @@ class Thumbnail {
 
   async doLoadInternal(file) {
     try {
-      if (file.uploadi || !file.id) {
+      if (file.upload || !file.id) {
         return;
       }
       await this.addInfo(await dry.exts.info.getFileInfo(file.id));
@@ -312,7 +311,7 @@ class Thumbnail {
   }
 
   addInfo(info) {
-    return apool.schedule(this, this.addInfoAsPromised, info);
+    return framePool.schedule(this, this.addInfoAsPromised, info);
   }
 
   addInfoForGeneric(info, ip, cls) {
@@ -436,14 +435,14 @@ class Thumbnail {
       ip = $e("span", {class: "tag_key_ip"}, info.uploader_ip);
     }
     const {thumb = {}} = info;
-    const {type: ttype = "", name = "thumb"} = thumb;
+    const {type: thumbType = "", name = "thumb"} = thumb;
 
-    if (ttype.startsWith("image/")) {
+    if (thumbType.startsWith("image/")) {
       await this.addInfoForThumb(info, ip, name);
       return;
     }
 
-    if (ttype.startsWith("video/")) {
+    if (thumbType.startsWith("video/")) {
       await this.addInfoForVideoThumb(info, ip, name);
       return;
     }
@@ -595,18 +594,18 @@ dry.once("load", () => {
   });
 
   dry.replaceLate("music", "showIcons", function(orig, file, ...args) {
-    let rv = orig(file, ...args);
+    const rv = orig(file, ...args);
     try {
-      let el = file.dom.vnThumbElement;
+      const el = file.dom.vnThumbElement;
       if (!el) {
-        return;
+        return rv;
       }
-      let ctrl = el.querySelector(".file_control");
+      const ctrl = el.querySelector(".file_control");
       if (!ctrl) {
-        return;
+        return rv;
       }
-      let nctrl = deepCloneClickable(file.dom.controlElement);
-      ctrl.parentElement.replaceChild(nctrl, ctrl);
+      const newControl = deepCloneClickable(file.dom.controlElement);
+      ctrl.parentElement.replaceChild(newControl, ctrl);
     }
     catch (ex) {
       console.error("music icons", ex);
