@@ -10,7 +10,7 @@
 // @require   https://cdn.jsdelivr.net/gh/volafiled/node-parrot@acb622d5d9af34f0de648385e6ab4d2411373037/parrot/finally.min.js
 // @require   https://cdn.jsdelivr.net/gh/volafiled/node-parrot@acb622d5d9af34f0de648385e6ab4d2411373037/parrot/pool.min.js
 // @grant     none
-// @version   7
+// @version   8
 // ==/UserScript==
 /* globals GM, dry, format, PromisePool */
 
@@ -141,12 +141,6 @@ const framePool = new class FramePool {
           catch (ex) {
             item.rej(ex);
           }
-          finally {
-            delete item.res;
-            delete item.rej;
-            delete item.fn;
-            delete item.args;
-          }
         }
       }
     }
@@ -159,19 +153,22 @@ const framePool = new class FramePool {
   schedule(ctx, fn, ...args) {
     const item = { ctx, fn, args };
     const rv = new Promise((res, rej) => Object.assign(item, { res, rej }));
-    this.items.push(item);
+    this.items.push(Object.freeze(item));
+
     if (!this.id) {
       this.id = requestAnimationFrame(this.run);
     }
+
     return rv;
   }
 }();
 
 function $e(tag, attrs, text) {
   const rv = document.createElement(tag);
-  attrs = attrs || {};
-  for (const a in attrs) {
-    rv.setAttribute(a, attrs[a]);
+  if (attrs) {
+    for (const [name, val] of Object.entries(attrs)) {
+      rv.setAttribute(name, val);
+    }
   }
   if (text) {
     rv.textContent = text;
@@ -242,18 +239,17 @@ class Thumbnail {
     const container = this.container = $e("a", {
       href: file.link,
       target: "_blank",
-      class: `volanail-thumb volanail-${file.type}`
+      title: file.name,
+      class: `volanail-thumb volanail-${file.type}`,
     });
     const name = $e("div", {
       class: `volanail-name ${file.dom.nameElement && file.dom.nameElement.className}`,
-      title: file.name
     }, file.name);
     const icon = this.icon = deepCloneClickable(file.dom.controlElement);
     icon.icon = file.dom.controlElement;
     name.insertBefore(icon, name.firstChild);
     name.onclick = e => {
-      file.dom.controlElement.firstChild.dispatchEvent(
-        new MouseEvent(e.type, e));
+      file.dom.controlElement.firstChild.dispatchEvent(new MouseEvent(e.type, e));
       e.preventDefault();
       e.stopPropagation();
       return false;
@@ -451,7 +447,7 @@ class Thumbnail {
       throw new Error("No thumb");
     }
 
-    await this.addInfoForGeneric(info, ip, this.icon.firstChild.className);
+    this.addInfoForGeneric(info, ip, this.icon.firstChild.className);
   }
 }
 
@@ -631,6 +627,4 @@ dry.once("load", () => {
 
   Array.from(dry.exts.filelistManager.filelist.filelist).reverse().forEach(
     prepare_file);
-
-  //button.click();
 });
