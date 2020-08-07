@@ -33,6 +33,10 @@ html {
   --icon-book-color: lightsalmon;
   --icon-archive-color: bisque;
   --icon-music-color: orchid;
+  --uploading-bg: #696969;
+  --uploading-bg2: #6d6d6d;
+  --uploading-done-bg: #567556;
+  --uploading-done-bg2: #598059;
   --username-color: rgb(170, 170, 180);
   --username-green-color: #23d16f;
   --username-donor-color: #42ff96;
@@ -131,6 +135,24 @@ table th {
 
 .filelist_file:hover::before {
   border-color: var(--file-hover-color);
+}
+
+.file_status {
+  font-size: small;
+}
+
+.file_uploading::before {
+  background-color: var(--uploading-bg);
+  background-image: repeating-linear-gradient(-45deg, var(--uploading-bg), var(--uploading-bg) 25%, var(--uploading-bg2) 25%, var(--uploading-bg2) 50%);
+}
+
+.file_uploading::after {
+  background-color: var(--uploading-done-bg);
+  background-image: repeating-linear-gradient(-45deg, var(--uploading-done-bg), var(--uploading-done-bg) 25%, var(--uploading-done-bg2) 25%, var(--uploading-done-bg2) 50%);
+}
+
+.file_queued {
+  background-color: #696969 !important;
 }
 
 .scroller-slider,
@@ -382,6 +404,11 @@ hr {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+}
+
+.file_queued .file_tags,
+.file_uploading .file_tags {
+  display: none;
 }
 
 .file_right_part {
@@ -643,6 +670,7 @@ body:not(.mobile_filelist) .file_status {
 .drag_here_svg .drag_here_rect,
 #call_to_action_container.active .drag_here_rect {
   color: var(--action-color);
+  stroke: var(--action-color);
 }
 
 #call_to_action_container::before {
