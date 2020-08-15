@@ -17,20 +17,6 @@ dry.once("load", () => {
   const room_name = document.getElementById("room_name");
   const default_color = room_name.style.color;
 
-  const setOrUnsetPadlock = function(config) {
-    if (!dry.exts.user.info.admin) {
-      console.error("This only works for mods because " +
-      "password is visible in the config for them");
-      return false;
-    }
-    if (config.password) {
-      room_name.textContent = dry.config.name + " 🔒";
-    }
-    else {
-      room_name.textContent = dry.config.name;
-    }
-  };
-
   dry.exts.connection.on("config", cfg => {
     if (cfg.disabled === true) {
       room_name.style.color = "red"; // is dead
@@ -38,6 +24,15 @@ dry.once("load", () => {
     else {
       room_name.style.color = default_color;
     }
-    setOrUnsetPadlock(cfg);
+    if (dry.exts.user.info.admin) {
+      // This only works for mods because
+      // password is visible in the config for them
+      if (cfg.password) {
+        room_name.textContent = dry.config.name + " 🔒";
+      }
+      else {
+        room_name.textContent = dry.config.name;
+      }
+    }
   });
 });
