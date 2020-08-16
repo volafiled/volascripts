@@ -24,7 +24,6 @@ dry.once("load", () => {
       room_name.textContent = cfg.password ?
         `${dry.config.name} 🔒` : dry.config.name;
     }
-    console.log(cfg.disabled);
     room_name.style.color = cfg.disabled === true ? "red" : default_color;
   });
 });
