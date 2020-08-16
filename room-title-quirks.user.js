@@ -18,21 +18,13 @@ dry.once("load", () => {
   const default_color = room_name.style.color;
 
   dry.exts.connection.on("config", cfg => {
-    if (cfg.disabled === true) {
-      room_name.style.color = "red"; // is dead
-    }
-    else {
-      room_name.style.color = default_color;
-    }
-    if (dry.exts.user.info.admin) {
+    if (dry.exts.user.info.admin && cfg.password !== undefined) {
       // This only works for mods because
       // password is visible in the config for them
-      if (cfg.password) {
-        room_name.textContent = dry.config.name + " 🔒";
-      }
-      else {
-        room_name.textContent = dry.config.name;
-      }
+      room_name.textContent = cfg.password ?
+        `${dry.config.name} 🔒` : dry.config.name;
     }
+    console.log(cfg.disabled);
+    room_name.style.color = cfg.disabled === true ? "red" : default_color;
   });
 });
