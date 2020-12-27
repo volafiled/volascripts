@@ -1,3 +1,4 @@
+@-moz-document domain("volafile.org") {
 html {
   --main-bg-color: #303030;
   --snd-bg-color: #101010;
@@ -202,6 +203,8 @@ table th {
 #chat_input {
   padding: 0.5ex 1ex;
   font-size: inherit;
+  border-bottom: 24px solid var(--input-color) !important;
+  height: calc(5em + 24px) !important;
 }
 
 #toggles span.toggle_icon {
@@ -731,4 +734,13 @@ textarea[name="motd"] {
 textarea[name="files"] {
   width: 30em;
   height: 12em;
+}
+
+.page_admin_adiscover tr:nth-child(odd) {
+  background-color: rgba(255,255,255,0.04);
+}
+
+.page_admin_adiscover tr:hover {
+  background-color: rgba(255,255,255,0.1);
+}
 }
