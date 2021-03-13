@@ -1,6 +1,9 @@
-Session.vim
-dav/
-dav
 .eslintrc*
-.vscode/settings.json
 .stylelintrc
+.vscode/settings.json
+dav
+dav/
+node_modules/
+package-lock.json
+package.json
+Session.vim
