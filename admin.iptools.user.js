@@ -12,7 +12,7 @@
 // @grant        none
 // ==/UserScript==
 
-/* global dry, GM, _templates, RoomInstance */
+/* global window, document, localStorage, GM, dry, _templates, RoomInstance */
 
 dry.once("dom", () => {
   "use strict";
@@ -136,10 +136,10 @@ dry.once("dom", () => {
 
   function nukeRoom() {
     dry.exts.ui.showQuestion({
-      title: "Disable this room",
-      text: "Are you sure you want to disable this room?",
-      positive: "Disable",
-      negative: "Abort"
+      title: "Nuke this room?",
+      text: "Are you sure you want to nuke this room?",
+      positive: "NUUUUUUUKE!!!!",
+      negative: "No Bulli"
     }, res => {
       if (!res) {
         return;
@@ -147,6 +147,8 @@ dry.once("dom", () => {
       dry.unsafeWindow.Volafile.setRoomConfig({
         name: "closed",
         motd: "closed",
+        owner: "noowner",
+        janitors: [],
         disabled: true
       });
     });
@@ -235,12 +237,52 @@ body[noipspls] .tag_key_ip {
 .icon-untick {
   margin: 0 !important;
 }
-.untick-button, .tick-button {
-  position: relative;
-  z-index: 150;
-  font-size: 18px;
-  padding-bottom: 1px;
-  margin-right: 1ex;
+#files_header {
+  display: flex;
+}
+
+#iptools-buttons {
+  box-sizing: border-box;
+  font-size: 0.8em !important;
+  margin: 0;
+  padding: 0;
+  line-height: inherit;
+  display: inline-flex;
+  align-items: center;
+  margin-right: 2.5ex;
+}
+
+.iptools-button {
+  box-sizing: border-box;
+  background-color: transparent !important;
+  color: white !important;
+  height: 100%;
+  line-height: inherit;
+  min-width: 2.5em;
+  text-align: center;
+  padding: 0;
+  margin: 0;
+  display: block;
+  border-radius: 3px;
+}
+
+.iptools-button > span {
+  vertical-align: middle;
+}
+
+.iptools-button:hover {
+  background: rgba(120, 120, 120, 0.1) !important;
+}
+
+.iptools-button:active {
+  background: rgba(120, 120, 120, 0.5) !important;
+}
+
+.iptools-button-group {
+  height: 9px;
+  border-right: 2px dotted rgba(255, 255, 255, 0.7) !important;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
 }
 `);
   document.body.appendChild(style);
@@ -423,29 +465,60 @@ body[noipspls] .tag_key_ip {
 
   const DO_ET = Symbol("We waz doing et");
   const REMOVE = Symbol();
-  const cont = $("#upload_container");
-  const untickButton = $e("label", {
-    for: "untick-button",
-    id: "untick-button",
-    class: "button untick-button",
-    title: "Untick all!"
+  const row = $("#files_header");
+  const cont = $e("div", {
+    id: "iptools-buttons",
   });
-  untickButton.appendChild($e("span", {
-    class: "icon-minus"
-  }));
-  const tickButton = $e("label", {
-    for: "tick-button",
-    id: "tick-button",
-    class: "button tick-button",
-    title: "Tick all!"
+  row.insertBefore(cont, row.firstChild);
+
+
+  function installButton(id, icon, title, action, group) {
+    const btn = $e("label", {
+      for: id,
+      id,
+      class: `button iptools-button ${id}`,
+      title
+    });
+    const span = $e("span");
+    span.appendChild($e("span", {
+      class: icon
+    }));
+    btn.appendChild(span);
+    btn.addEventListener("click", action);
+    cont.appendChild(btn);
+    if (group) {
+      cont.appendChild($e("div", {
+        class: "iptools-button-group"
+      }));
+    }
+  }
+
+  installButton("nuke-button", "icon-lock", "Deploy nuke!",
+                nukeRoom, true);
+
+  installButton("tick-button", "icon-plus", "Tick all!",
+                tickAll);
+  installButton("untick-button", "icon-minus", "Untick all!",
+                () => dry.exts.adminButtons.untickAll(DO_ET), true);
+
+  installButton("ban-button", "icon-hammer", "Ban!", (e) => {
+    if (e.shiftKey) {
+      RoomInstance.extensions.adminButtons.onUnbanButtonClicked();
+    }
+    else {
+      RoomInstance.extensions.adminButtons.onBanButtonClicked();
+    }
   });
-  tickButton.appendChild($e("span", {
-    class: "icon-plus"
-  }));
-  untickButton.addEventListener("click", () => dry.exts.adminButtons.untickAll(DO_ET));
-  tickButton.addEventListener("click", tickAll);
-  cont.insertBefore(untickButton, cont.firstChild);
-  cont.insertBefore(tickButton, cont.firstChild);
+  installButton("blacklist-button", "icon-warning", "Blacklist!", (e) => {
+    if (e.shiftKey) {
+      RoomInstance.extensions.adminButtons.onWhitelistClicked();
+    }
+    else {
+      RoomInstance.extensions.adminButtons.onBlacklistClicked();
+    }
+  });
+  installButton("removefiles-button", "icon-trash", "Remove Files!",
+                () => RoomInstance.extensions.adminButtons.onRemoveClicked());
 
   dry.replaceEarly("ui", "showContextMenu", function(orig, el, options) {
     try {
