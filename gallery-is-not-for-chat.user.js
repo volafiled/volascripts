@@ -7,12 +7,15 @@
 // @author       topkuk productions
 // @match        https://volafile.org/r/*
 // @grant        none
-// @run-at       document-end
+// @require      https://cdn.jsdelivr.net/gh/volafiled/volascripts@a9c0424e5498deea9fd437c15b2137c3bec07c61/dry.min.js
+// @run-at       document-start
 // ==/UserScript==
+/* globals dry */
 
-(function() {
-    const style = document.createElement("style");
-    style.textContent = `
+dry.once("load", () => {
+  "use strict";
+  const style = document.createElement("style");
+  style.textContent = `
 .blur {
     -webkit-filter: none;
     -moz-filter:  none;
@@ -30,8 +33,20 @@
     filter: progid:DXImageTransform.Microsoft.Blur(PixelRadius='5');
 }
 `;
-    document.body.appendChild(style);
-
-    const frame = document.querySelector("#files_frame");
-    frame.appendChild(document.querySelector("#gallery_frame"));
-})();
+  document.body.appendChild(style);
+  const g = dry.exts.gallery;
+  const scroll_files = function(e) {
+    if (e.deltaY > 0) {
+      g.next();
+    }
+    else {
+      g.previous();
+    }
+  };
+  const leave = () => g.close();
+  const frame = document.querySelector("#files_frame");
+  const gframe = document.querySelector("#gallery_frame");
+  gframe.addEventListener("wheel", scroll_files, {passive: true});
+  gframe.addEventListener("mouseleave", leave, {passive: true});
+  frame.appendChild(gframe);
+});
