@@ -14,6 +14,7 @@
 
 dry.once("load", () => {
   "use strict";
+  const $ = sel => document.querySelector(sel);
   const style = document.createElement("style");
   style.textContent = `
 .blur {
@@ -43,10 +44,8 @@ dry.once("load", () => {
       g.previous();
     }
   };
-  const leave = () => g.close();
-  const frame = document.querySelector("#files_frame");
-  const gframe = document.querySelector("#gallery_frame");
+  const frame = $("#files_frame");
+  const gframe = $("#gallery_frame");
   gframe.addEventListener("wheel", scroll_files, {passive: true});
-  gframe.addEventListener("mouseleave", leave, {passive: true});
   frame.appendChild(gframe);
 });
