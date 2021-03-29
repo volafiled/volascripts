@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         gallery is not for chat
-// @version      1
+// @version      2
 // @description  It really is not!
 // @namespace    https://volafile.org
 // @icon         https://volafile.org/favicon.ico
